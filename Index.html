@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JR RIFAS TJ - ¡Participa y Gana!</title>
+    <style>
+        :root {
+            --primary: #2e4453; 
+            --accent: #558c70;  
+            --bg: #f4f7f6;
+            --disponible: #ffffff;
+            --seleccionado: #2e4453; /* Color cuando el usuario los toca */
+            --apartado: #ffc107; 
+            --vendido: #dc3545;   
+        }
+
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; background-color: var(--bg); color: var(--primary); padding-bottom: 100px; }
+
+        header {
+            background: white; padding: 15px 5%;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .logo-box { border: 3px solid var(--primary); padding: 5px 12px; font-weight: bold; font-size: 22px; color: var(--accent); border-radius: 4px; }
+
+        .container { max-width: 800px; margin: 20px auto; padding: 0 20px; }
+        
+        /* --- Caja de Información de la Rifa --- */
+        .info-rifa {
+            background: white; padding: 25px; border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; margin-bottom: 20px;
+            border-top: 5px solid var(--accent);
+        }
+        .premio-txt { font-size: 28px; font-weight: bold; color: var(--accent); margin: 5px 0; }
+        .costo-txt { font-size: 20px; font-weight: bold; background: var(--primary); color: white; display: inline-block; padding: 5px 15px; border-radius: 20px; margin-bottom: 15px; }
+        
+        .datos-banco { background: #f9f9f9; padding: 15px; border-radius: 10px; border: 1px dashed #ccc; font-size: 14px; margin-top: 10px; }
+        .datos-banco b { color: #004481; } /* Azul BBVA */
+
+        /* --- Grid de Números --- */
+        .grid-rifa {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+            gap: 8px; background: #fff; padding: 20px; border-radius: 15px;
+        }
+
+        .numero {
+            aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+            font-weight: bold; border-radius: 6px; cursor: pointer; border: 1px solid #ddd; transition: 0.2s;
+        }
+
+        .numero.disponible:hover { border-color: var(--accent); color: var(--accent); }
+        .numero.seleccionado { background: var(--seleccionado) !important; color: white !important; border: none; transform: scale(1.1); }
+        .numero.apartado { background: var(--apartado); color: white; cursor: not-allowed; border: none; opacity: 0.7; }
+        .numero.vendido { background: var(--vendido); color: white; cursor: not-allowed; border: none; }
+
+        /* --- Barra Inferior de Selección --- */
+        .barra-flotante {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: white; padding: 15px 0; box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
+            display: none; justify-content: center; align-items: center; gap: 20px; z-index: 200;
+        }
+
+        /* --- Modal --- */
+        .modal {
+            display: none; position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 1000;
+        }
+        .modal-content { background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 380px; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        
+        .btn-enviar { background: var(--accent); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div style="display:flex; align-items:center; gap:10px;">
+        <div class="logo-box">JR</div>
+        <b style="letter-spacing:1px;">RIFAS TJ</b>
+    </div>
+</header>
+
+<div class="container">
+    <div class="info-rifa">
+        <span>Próximo Gran Sorteo:</span>
+        <div class="premio-txt" id="display-premio">GANA $5,000 PESOS</div>
+        <div class="costo-txt" id="display-costo">Boleto: $70 MXN</div>
+        
+        <div class="datos-banco">
+            <p style="margin:0 0 5px 0;">💳 <b>DATOS PARA PAGO (BBVA)</b></p>
+            <div style="font-size: 18px; letter-spacing: 1px;">4152 3144 9350 1483</div>
+            <p style="margin:5px 0 0 0; font-size: 12px; opacity: 0.7;">Transferencia o Depósito en OXXO</p>
+        </div>
+        <p style="font-size: 13px; color: #666; margin-top: 15px;">Selecciona tus números abajo. Tienes 24h para pagar.</p>
+    </div>
+
+    <div class="grid-rifa" id="grid"></div>
+</div>
+
+<!-- Barra de acción cuando selecciona números -->
+<div class="barra-flotante" id="barra">
+    <div>Seleccionados: <b id="cuenta-numeros">0</b> | Total: <b id="total-pago">$0</b></div>
+    <button class="btn-enviar" style="width:auto; padding: 10px 20px;" onclick="abrirModal()">APARTAR</button>
+</div>
+
+<div class="modal" id="modal">
+    <div class="modal-content">
+        <h2>Confirmar Apartado</h2>
+        <p id="resumen-numeros" style="font-weight:bold; color:var(--accent)"></p>
+        <input type="text" id="nombre" placeholder="Nombre completo">
+        <input type="tel" id="telefono" placeholder="WhatsApp (10 dígitos)">
+        <button class="btn-enviar" id="btn-final">CONFIRMAR Y ENVIAR WHATSAPP</button>
+        <p onclick="cerrarModal()" style="color:gray; cursor:pointer; margin-top:15px;">Regresar</p>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, doc, onSnapshot, updateDoc, collection, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    // ==========================================
+    // ⚙️ CONFIGURACIÓN DE LA RIFA (MODIFICA AQUÍ)
+    // ==========================================
+    const CONFIG = {
+        premio: "GANA $5,000 PESOS",
+        costoBoleto: 70,
+        whatsappAdmin: "526634917818",
+        banco: "BBVA: 4152 3144 9350 1483"
+    };
+
+    // Actualizar visualmente la página con la configuración
+    document.getElementById('display-premio').innerText = CONFIG.premio;
+    document.getElementById('display-costo').innerText = `Boleto: $${CONFIG.costoBoleto} MXN`;
+
+    // 🔥 CONFIGURACIÓN FIREBASE (PEGA TUS LLAVES AQUÍ)
+    const firebaseConfig = {
+      apiKey: "TU_API_KEY",
+      authDomain: "TU_PROYECTO.firebaseapp.com",
+      projectId: "TU_PROYECTO_ID",
+      storageBucket: "TU_PROYECTO.appspot.com",
+      messagingSenderId: "SENDER_ID",
+      appId: "APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    let seleccionados = [];
+
+    function cargarTabla() {
+        onSnapshot(collection(db, "rifa_100"), (snap) => {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            const datos = {};
+            snap.forEach(d => datos[d.id] = d.data());
+
+            for (let i = 1; i <= 100; i++) {
+                const id = i.toString();
+                const btn = document.createElement('div');
+                btn.className = 'numero disponible';
+                btn.innerText = i;
+
+                if (datos[id]) {
+                    if (datos[id].estado === 'apartado') btn.className = 'numero apartado';
+                    if (datos[id].estado === 'vendido') btn.className = 'numero vendido';
+                }
+
+                // Si está disponible, permitir selección múltiple
+                if (btn.className.includes('disponible')) {
+                    if (seleccionados.includes(i)) btn.classList.add('seleccionado');
+                    
+                    btn.onclick = () => togglerNumero(i);
+                }
+                grid.appendChild(btn);
+            }
+        });
+    }
+
+    function togglerNumero(num) {
+        if (seleccionados.includes(num)) {
+            seleccionados = seleccionados.filter(n => n !== num);
+        } else {
+            seleccionados.push(num);
+        }
+        actualizarBarra();
+        cargarTabla();
+    }
+
+    function actualizarBarra() {
+        const barra = document.getElementById('barra');
+        if (seleccionados.length > 0) {
+            barra.style.display = 'flex';
+            document.getElementById('cuenta-numeros').innerText = seleccionados.length;
+            document.getElementById('total-pago').innerText = "$" + (seleccionados.length * CONFIG.costoBoleto);
+        } else {
+            barra.style.display = 'none';
+        }
+    }
+
+    window.abrirModal = () => {
+        document.getElementById('resumen-numeros').innerText = "Números: " + seleccionados.join(", ");
+        document.getElementById('modal').style.display = 'flex';
+    };
+
+    window.cerrarModal = () => document.getElementById('modal').style.display = 'none';
+
+    document.getElementById('btn-final').onclick = async () => {
+        const nom = document.getElementById('nombre').value;
+        const tel = document.getElementById('telefono').value;
+
+        if (!nom || !tel) return alert("Llena tus datos");
+
+        try {
+            const batch = writeBatch(db); // Para guardar todos los números de un solo golpe
+            
+            seleccionados.forEach(num => {
+                const ref = doc(db, "rifa_100", num.toString());
+                batch.update(ref, {
+                    estado: 'apartado',
+                    nombre: nom,
+                    telefono: tel,
+                    fecha: new Date().toLocaleString()
+                });
+            });
+
+            await batch.commit();
+
+            // Mensaje de WhatsApp Único
+            const total = seleccionados.length * CONFIG.costoBoleto;
+            const lista = seleccionados.join(", ");
+            const texto = `¡Hola JR RIFAS TJ! 👋\n\nAcabo de apartar estos números: *${lista}*\nTotal a pagar: *$${total} MXN*\n\nNombre: *${nom}*\nTeléfono: *${tel}*\n\nYa tengo los datos de pago (${CONFIG.banco}). En un momento envío el comprobante.`;
+            
+            window.location.href = `https://wa.me/${CONFIG.whatsappAdmin}?text=${encodeURIComponent(texto)}`;
+        } catch (e) {
+            alert("Error al guardar. Verifica tus llaves de Firebase.");
+        }
+    };
+
+    cargarTabla();
+</script>
+
+</body>
+</html>
+
