@@ -2,27 +2,56 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Panel Admin - JR RIFAS TJ</title>
+    <title>Acceso Seguro - JR RIFAS TJ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { font-family: sans-serif; background: #2e4453; color: white; padding: 20px; display:none; }
-        .lista { background: white; color: #333; padding: 20px; border-radius: 10px; max-width: 900px; margin: auto; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
-        .btn-pago { background: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
-        .btn-libre { background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+        body { font-family: 'Segoe UI', sans-serif; background: #2e4453; color: white; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .login-card { background: white; color: #333; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); width: 90%; max-width: 400px; text-align: center; }
+        .admin-panel { display: none; width: 95%; max-width: 1000px; background: white; color: #333; border-radius: 15px; padding: 20px; margin: 20px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-login { background: #558c70; color: white; font-size: 16px; }
+        .btn-pago { background: #28a745; color: white; margin-bottom: 5px; }
+        .btn-libre { background: #dc3545; color: white; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
     </style>
 </head>
 <body>
-    <div class="lista">
-        <h2>Administración JR RIFAS TJ</h2>
-        <table>
-            <thead><tr><th>#</th><th>Nombre</th><th>WhatsApp</th><th>Estado</th><th>Acciones</th></tr></thead>
-            <tbody id="cuerpo"></tbody>
-        </table>
+
+    <div id="login-section" class="login-card">
+        <h2 style="color: #2e4453; margin-top: 0;">Panel JR RIFAS</h2>
+        <p style="color: #666; font-size: 14px;">Solo personal autorizado</p>
+        <input type="email" id="email" placeholder="Correo electrónico">
+        <input type="password" id="password" placeholder="Contraseña">
+        <button class="btn-login" id="btn-entrar">INICIAR SESIÓN</button>
+        <p id="error-msg" style="color: red; font-size: 12px; margin-top: 10px;"></p>
+    </div>
+
+    <div id="admin-section" class="admin-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="color: #2e4453;">Control de Boletos - JR RIFAS TJ</h2>
+            <button onclick="cerrarSesion()" style="width: auto; background: #eee; color: #333; padding: 5px 15px;">Cerrar Sesión</button>
+        </div>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nombre</th>
+                        <th>WhatsApp</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpo-tabla"></tbody>
+            </table>
+        </div>
     </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import { getFirestore, collection, onSnapshot, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -34,36 +63,65 @@
       appId: "1:229988706437:web:86c79a2b8139b9a18961ec"
     };
 
-    const pass = prompt("Contraseña:");
-    if(pass === "J0rfr3dy#@12@") document.body.style.display = "block";
-    else window.location.href="index.html";
-
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
     const db = getFirestore(app);
 
-    onSnapshot(collection(db, "rifa_100"), (snap) => {
-        const cuerpo = document.getElementById('cuerpo');
-        cuerpo.innerHTML = '';
-        snap.forEach(d => {
-            const data = d.data();
-            if(data.estado === 'disponible') return;
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><b>${d.id}</b></td>
-                <td>${data.nombre}</td>
-                <td>${data.telefono}</td>
-                <td>${data.estado.toUpperCase()}</td>
-                <td>
-                    ${data.estado === 'apartado' ? `<button class="btn-pago" onclick="vender('${d.id}')">Pagado</button>` : ''}
-                    <button class="btn-libre" onclick="liberar('${d.id}')">X</button>
-                </td>`;
-            cuerpo.appendChild(tr);
-        });
+    // Lógica de Inicio de Sesión
+    document.getElementById('btn-entrar').onclick = async () => {
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('password').value;
+        const errorMsg = document.getElementById('error-msg');
+        
+        try {
+            await signInWithEmailAndPassword(auth, email, pass);
+        } catch (error) {
+            errorMsg.innerText = "Correo o contraseña incorrectos.";
+        }
+    };
+
+    // Detectar si hay sesión activa
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('admin-section').style.display = 'block';
+            document.body.style.alignItems = 'flex-start';
+            cargarDatos();
+        } else {
+            document.getElementById('login-section').style.display = 'block';
+            document.getElementById('admin-section').style.display = 'none';
+            document.body.style.alignItems = 'center';
+        }
     });
 
-    window.vender = async (id) => { await updateDoc(doc(db, "rifa_100", id), { estado: 'vendido' }); };
-    window.liberar = async (id) => { if(confirm("¿Liberar?")) await setDoc(doc(db, "rifa_100", id), { estado: 'disponible' }); };
+    window.cerrarSesion = () => signOut(auth);
+
+    function cargarDatos() {
+        onSnapshot(collection(db, "rifa_100"), (snap) => {
+            const cuerpo = document.getElementById('cuerpo-tabla');
+            cuerpo.innerHTML = '';
+            let docs = [];
+            snap.forEach(d => { if(d.data().estado !== 'disponible') docs.push({id: d.id, ...d.data()}); });
+            
+            docs.sort((a,b) => parseInt(a.id) - parseInt(b.id)).forEach(data => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><b>${data.id}</b></td>
+                    <td>${data.nombre}</td>
+                    <td>${data.telefono}</td>
+                    <td style="color:${data.estado === 'vendido' ? 'green' : 'orange'}"><b>${data.estado.toUpperCase()}</b></td>
+                    <td>
+                        ${data.estado === 'apartado' ? `<button class="btn-pago" onclick="marcarVendido('${data.id}')">Vender</button>` : ''}
+                        <button class="btn-libre" onclick="liberar('${data.id}')">Liberar</button>
+                    </td>
+                `;
+                cuerpo.appendChild(tr);
+            });
+        });
+    }
+
+    window.marcarVendido = async (id) => { await updateDoc(doc(db, "rifa_100", id), { estado: 'vendido' }); };
+    window.liberar = async (id) => { if(confirm("¿Liberar número?")) await setDoc(doc(db, "rifa_100", id), { estado: 'disponible' }); };
 </script>
 </body>
 </html>
-
