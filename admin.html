@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Admin - JR RIFAS TJ</title>
+    <style>
+        body { font-family: sans-serif; background: #2e4453; color: white; padding: 20px; display:none; }
+        .lista { background: white; color: #333; padding: 20px; border-radius: 10px; max-width: 900px; margin: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
+        .btn-pago { background: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+        .btn-libre { background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="lista">
+        <h2>Administración JR RIFAS TJ</h2>
+        <table>
+            <thead><tr><th>#</th><th>Nombre</th><th>WhatsApp</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody id="cuerpo"></tbody>
+        </table>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, collection, onSnapshot, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCsjIOcnEFLfqUC5hbVGNh6ti3v1dHGcCc",
+      authDomain: "rifas-jr-tj.firebaseapp.com",
+      projectId: "rifas-jr-tj",
+      storageBucket: "rifas-jr-tj.firebasestorage.app",
+      messagingSenderId: "229988706437",
+      appId: "1:229988706437:web:86c79a2b8139b9a18961ec"
+    };
+
+    const pass = prompt("Contraseña:");
+    if(pass === "J0rfr3dy#@12@") document.body.style.display = "block";
+    else window.location.href="index.html";
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    onSnapshot(collection(db, "rifa_100"), (snap) => {
+        const cuerpo = document.getElementById('cuerpo');
+        cuerpo.innerHTML = '';
+        snap.forEach(d => {
+            const data = d.data();
+            if(data.estado === 'disponible') return;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><b>${d.id}</b></td>
+                <td>${data.nombre}</td>
+                <td>${data.telefono}</td>
+                <td>${data.estado.toUpperCase()}</td>
+                <td>
+                    ${data.estado === 'apartado' ? `<button class="btn-pago" onclick="vender('${d.id}')">Pagado</button>` : ''}
+                    <button class="btn-libre" onclick="liberar('${d.id}')">X</button>
+                </td>`;
+            cuerpo.appendChild(tr);
+        });
+    });
+
+    window.vender = async (id) => { await updateDoc(doc(db, "rifa_100", id), { estado: 'vendido' }); };
+    window.liberar = async (id) => { if(confirm("¿Liberar?")) await setDoc(doc(db, "rifa_100", id), { estado: 'disponible' }); };
+</script>
+</body>
+</html>
+
