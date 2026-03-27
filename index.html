@@ -16,6 +16,7 @@
         .info-rifa { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; margin-bottom: 20px; border-top: 5px solid var(--accent); }
         .premio-txt { font-size: 28px; font-weight: bold; color: var(--accent); margin: 5px 0; text-transform: uppercase; }
         .costo-txt { font-size: 20px; font-weight: bold; background: var(--primary); color: white; display: inline-block; padding: 5px 15px; border-radius: 20px; margin-bottom: 15px; }
+        .meta-txt { background: #e2e8e4; color: var(--primary); display: inline-block; padding: 8px 15px; border-radius: 8px; font-size: 14.5px; font-weight: 600; margin-bottom: 15px; width: 100%; box-sizing: border-box; border: 1px dashed var(--accent); }
         .datos-banco { background: #f9f9f9; padding: 15px; border-radius: 10px; border: 1px dashed #ccc; font-size: 14px; margin-top: 10px; }
         
         /* Estilos del Generador Aleatorio */
@@ -49,13 +50,12 @@
 <body>
 
 <header>
-    <a href="/" style="display:flex; align-items:center; gap:10px; text-decoration:none;">
-        <div class="logo-box">JR</div>
-        <b style="letter-spacing:1px; color:var(--primary);">RIFAS TJ</b>
+    <a href="/" style="display:flex; align-items:center; text-decoration:none;">
+        <img src="logo-rifas.png" alt="JR RIFAS TJ" style="height: 60px; width: auto; max-width: 250px;">
     </a>
     <nav>
         <ul>
-            <li><a href="index">Inicio</a></li>
+            <li><a href="/">Inicio</a></li>
             <li><a href="ganadores">🏆 Ganadores</a></li>
             <li><a href="#seccion-ruleta">🎡 Sorteo</a></li>
         </ul>
@@ -66,6 +66,9 @@
     <div class="info-rifa">
         <div class="premio-txt" id="txt-premio">CARGANDO PREMIO...</div>
         <div class="costo-txt" id="txt-costo">Boleto: $--</div>
+        
+        <!-- SECCIÓN DE LA META AGREGADA AQUÍ -->
+        <div class="meta-txt" id="txt-meta">🎯 Cargando meta...</div>
         
         <div class="datos-banco" style="text-align: left; border: 1px solid #e0e0e0; background: #fff; padding: 15px; border-radius: 12px;">
             <p style="margin: 0 0 10px 0; font-weight: bold; color: var(--primary); border-bottom: 1px solid #eee; padding-bottom: 5px;">
@@ -123,7 +126,6 @@
         <input type="tel" id="telefono" placeholder="WhatsApp (10 dígitos)">
         <button class="btn-enviar" id="btn-final">APARTAR Y NOTIFICAR</button>
         
-        <!-- BOTÓN CANCELAR ACTUALIZADO -->
         <p onclick="cancelarCompra()" style="color:#dc3545; cursor:pointer; margin-top:20px; font-weight:bold; font-size: 15px;">✖ Cancelar Selección</p>
     </div>
 </div>
@@ -158,15 +160,20 @@
     // Modifica los datos de aquí para cambiar tu página web
     // ======================================================
     const CONFIG_RIFA = {
-        premio: "GANA $5,000 PESOS",            // Cambia el premio aquí
-        precioBoleto: 70,                       // Cambia el costo por boleto aquí
-        bancoInfo: "BBVA: 4152 3144 9350 1483", // Tu cuenta bancaria
-        whatsappAdmin: "526634917818"           // Tu número de WhatsApp de JR RIFAS TJ
+        premio: "GANA $5,000 PESOS",
+        precioBoleto: 70,
+        metaSorteo: "La rifa se lanza al vender un mínimo de 100 boletos.", // <-- AQUÍ PUEDES EDITAR LA META
+        bancoInfo: "BBVA: 4152 3144 9350 1483", 
+        whatsappAdmin: "526634917818"           
     };
     // ======================================================
 
     document.getElementById('txt-premio').innerText = CONFIG_RIFA.premio;
     document.getElementById('txt-costo').innerText = `Boleto: $${CONFIG_RIFA.precioBoleto} MXN`;
+    
+    // Asignación del texto de la meta en la pantalla
+    document.getElementById('txt-meta').innerText = `🎯 ${CONFIG_RIFA.metaSorteo}`; 
+    
     document.getElementById('txt-banco').innerText = CONFIG_RIFA.bancoInfo;
 
     const firebaseConfig = {
