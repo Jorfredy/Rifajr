@@ -67,6 +67,9 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    // Colección actualizada a rifa_500
+    const nombreColeccion = "rifa_500";
+
     // Lógica de Inicio de Sesión
     document.getElementById('btn-entrar').onclick = async () => {
         const email = document.getElementById('email').value;
@@ -97,7 +100,7 @@
     window.cerrarSesion = () => signOut(auth);
 
     function cargarDatos() {
-        onSnapshot(collection(db, "rifa_100"), (snap) => {
+        onSnapshot(collection(db, nombreColeccion), (snap) => {
             const cuerpo = document.getElementById('cuerpo-tabla');
             cuerpo.innerHTML = '';
             let docs = [];
@@ -120,8 +123,8 @@
         });
     }
 
-    window.marcarVendido = async (id) => { await updateDoc(doc(db, "rifa_100", id), { estado: 'vendido' }); };
-    window.liberar = async (id) => { if(confirm("¿Liberar número?")) await setDoc(doc(db, "rifa_100", id), { estado: 'disponible' }); };
+    window.marcarVendido = async (id) => { await updateDoc(doc(db, nombreColeccion, id), { estado: 'vendido' }); };
+    window.liberar = async (id) => { if(confirm("¿Liberar número?")) await setDoc(doc(db, nombreColeccion, id), { estado: 'disponible' }); };
 </script>
 </body>
 </html>
