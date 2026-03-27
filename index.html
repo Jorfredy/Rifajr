@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JR RIFAS TJ - Sorteos Oficiales</title>
-    <link rel="icon" type="image/png" href="favicon.png">
+	<link rel="icon" type="image/png" href="favicon.png">
     <style>
         :root { --primary: #2e4453; --accent: #558c70; --bg: #f4f7f6; --disponible: #ffffff; --seleccionado: #2e4453; --apartado: #ffc107; --vendido: #dc3545; }
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; background-color: var(--bg); color: var(--primary); padding-bottom: 100px; }
@@ -17,30 +17,45 @@
         .premio-txt { font-size: 28px; font-weight: bold; color: var(--accent); margin: 5px 0; text-transform: uppercase; }
         .costo-txt { font-size: 20px; font-weight: bold; background: var(--primary); color: white; display: inline-block; padding: 5px 15px; border-radius: 20px; margin-bottom: 15px; }
         .datos-banco { background: #f9f9f9; padding: 15px; border-radius: 10px; border: 1px dashed #ccc; font-size: 14px; margin-top: 10px; }
+        
+        /* Estilos del Generador Aleatorio */
+        .generador-box { background: white; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 2px dashed var(--accent); }
+        .lista-generados { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 15px 0; }
+        .num-generado { background: var(--primary); color: white; padding: 8px 15px; border-radius: 20px; display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 18px; }
+        .num-generado span { cursor: pointer; color: #ff6b6b; font-weight: bold; font-size: 20px; transition: 0.2s; }
+        .num-generado span:hover { color: #ff3b3b; transform: scale(1.2); }
+
         .grid-rifa { display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 8px; background: #fff; padding: 20px; border-radius: 15px; }
         .numero { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 6px; cursor: pointer; border: 1px solid #ddd; transition: 0.2s; }
         .numero.disponible:hover { border-color: var(--accent); color: var(--accent); }
         .numero.seleccionado { background: var(--seleccionado) !important; color: white !important; border: none; transform: scale(1.1); }
         .numero.apartado { background: var(--apartado); color: white; cursor: not-allowed; border: none; opacity: 0.7; }
         .numero.vendido { background: var(--vendido); color: white; cursor: not-allowed; border: none; }
+        
+        /* Estilos de Paginación */
+        .paginacion { display: flex; justify-content: center; gap: 8px; margin-top: 20px; flex-wrap: wrap; }
+        .btn-page { padding: 10px 15px; border: 1px solid var(--primary); background: white; color: var(--primary); border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-page.active { background: var(--primary); color: white; }
+        .btn-page:hover:not(.active) { background: #e2e8e4; }
+
         .barra-flotante { position: fixed; bottom: 0; left: 0; width: 100%; background: white; padding: 15px 0; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); display: none; justify-content: center; align-items: center; gap: 20px; z-index: 200; }
         .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 1000; }
         .modal-content { background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 380px; text-align: center; }
         input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        .btn-enviar { background: var(--accent); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; text-decoration: none; display: inline-block; }
-        .btn-admin-oculto { position: fixed; bottom: 10px; right: 10px; width: 30px; height: 30px; background: rgba(0,0,0,0.01); border:none; cursor: pointer; z-index: 50; }
+        .btn-enviar { background: var(--accent); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; text-decoration: none; display: inline-block; transition: 0.2s; }
+        .btn-enviar:hover { background: #44735c; }
     </style>
 </head>
 <body>
 
 <header>
-        <a href="/" style="display:flex; align-items:center; text-decoration:none;">
-        <img src="logo-rifas.png" alt="JR RIFAS TJ" style="height: 60px; width: auto; max-width: 250px;">
+    <a href="/" style="display:flex; align-items:center; gap:10px; text-decoration:none;">
+        <div class="logo-box">JR</div>
+        <b style="letter-spacing:1px; color:var(--primary);">RIFAS TJ</b>
     </a>
-
     <nav>
         <ul>
-            <li><a href="/">Inicio</a></li>
+            <li><a href="index">Inicio</a></li>
             <li><a href="ganadores">🏆 Ganadores</a></li>
             <li><a href="#seccion-ruleta">🎡 Sorteo</a></li>
         </ul>
@@ -53,34 +68,42 @@
         <div class="costo-txt" id="txt-costo">Boleto: $--</div>
         
         <div class="datos-banco" style="text-align: left; border: 1px solid #e0e0e0; background: #fff; padding: 15px; border-radius: 12px;">
-    <p style="margin: 0 0 10px 0; font-weight: bold; color: var(--primary); border-bottom: 1px solid #eee; padding-bottom: 5px;">
-        💳 MÉTODOS DE PAGO:
-    </p>
-    
-    <div style="margin-bottom: 10px;">
-        <span style="font-size: 12px; color: #666; display: block; margin-bottom: 2px;">🏦 Transferencia o Depósito:</span>
-        <b id="txt-banco" style="font-size: 16px; color: var(--accent);">BBVA: 4152-3144-9350-1483</b>
-    </div>
-
-    <div style="background: #fff4f4; border-radius: 8px; padding: 10px; border-left: 4px solid #dd242c;">
-        <span style="font-size: 12px; color: #dd242c; font-weight: bold; display: block;">🏪 DEPÓSITO EN OXXO:</span>
-        <p style="margin: 3px 0 0 0; font-size: 14px;">Menciona que es a la cuenta <b>BBVA</b> arriba mencionada.</p>
-    </div>
-
-    <p style="margin: 10px 0 0 0; font-size: 12px; color: #888; font-style: italic;">
-        ⚠️ Tienes <b>24 horas</b> para enviar tu comprobante por WhatsApp o el número se liberará.
-    </p>
-</div>
-
+            <p style="margin: 0 0 10px 0; font-weight: bold; color: var(--primary); border-bottom: 1px solid #eee; padding-bottom: 5px;">
+                💳 MÉTODOS DE PAGO:
+            </p>
+            <div style="margin-bottom: 10px;">
+                <span style="font-size: 12px; color: #666; display: block; margin-bottom: 2px;">🏦 Transferencia o Depósito:</span>
+                <b id="txt-banco" style="font-size: 16px; color: var(--accent);">BBVA: 4152 3144 9350 1483</b>
+            </div>
+            <div style="background: #fff4f4; border-radius: 8px; padding: 10px; border-left: 4px solid #dd242c;">
+                <span style="font-size: 12px; color: #dd242c; font-weight: bold; display: block;">🏪 DEPÓSITO EN OXXO:</span>
+                <p style="margin: 3px 0 0 0; font-size: 14px;">Menciona que es a la cuenta <b>BBVA</b> arriba mencionada.</p>
+            </div>
+            <p style="margin: 10px 0 0 0; font-size: 12px; color: #888; font-style: italic;">
+                ⚠️ Tienes <b>24 horas</b> para enviar tu comprobante por WhatsApp o el número se liberará.
+            </p>
+        </div>
     </div>
     
+    <!-- GENERADOR ALEATORIO -->
+    <div class="generador-box">
+        <h3 style="margin-top:0; color:var(--accent); font-size: 22px;">🎲 Máquina de la Suerte</h3>
+        <p style="font-size:15px; color:#666; margin-bottom: 15px;">¿No sabes qué número elegir? ¡Te ayudamos!</p>
+        <div style="display:flex; justify-content:center; gap:10px; align-items:center; flex-wrap: wrap;">
+            <input type="number" id="cant-aleatorios" placeholder="Cant. de números" min="1" max="50" style="width: 180px; margin:0; text-align: center;">
+            <button class="btn-enviar" style="width:auto; padding:12px 25px; margin:0;" onclick="abrirGenerador()">GENERAR</button>
+        </div>
+    </div>
+
+    <!-- CUADRÍCULA Y PAGINACIÓN -->
     <div class="grid-rifa" id="grid"></div>
+    <div class="paginacion" id="paginacion"></div>
 </div>
 
 <section id="seccion-ruleta" style="background: var(--primary); color: white; padding: 60px 0; text-align: center;">
     <div class="container">
         <h2 style="color: var(--accent);">🎡 SORTEO EN VIVO</h2>
-        <div id="pantalla-ganador" style="font-size: 100px; font-weight: bold; margin: 20px 0; color: var(--accent);">--</div>
+        <div id="pantalla-ganador" style="font-size: 100px; font-weight: bold; margin: 20px 0; color: var(--accent);">000</div>
         <button id="btn-girar" class="btn-enviar" style="width:auto; padding: 15px 40px; border-radius: 50px;">¡GIRAR RULETA!</button>
         <p id="msg-ruleta" style="margin-top: 20px; font-weight: bold;"></p>
     </div>
@@ -91,14 +114,28 @@
     <button class="btn-enviar" style="width:auto; padding: 10px 20px;" onclick="abrirModal()">APARTAR</button>
 </div>
 
+<!-- MODAL DEL FORMULARIO -->
 <div class="modal" id="modal">
     <div class="modal-content">
         <h2>Apartar Números</h2>
-        <p id="resumen-numeros" style="font-weight:bold; color:var(--accent)"></p>
+        <p id="resumen-numeros" style="font-weight:bold; color:var(--accent); word-break: break-all;"></p>
         <input type="text" id="nombre" placeholder="Nombre completo">
         <input type="tel" id="telefono" placeholder="WhatsApp (10 dígitos)">
         <button class="btn-enviar" id="btn-final">APARTAR Y NOTIFICAR</button>
-        <p onclick="cerrarModal()" style="color:gray; cursor:pointer; margin-top:15px;">Regresar</p>
+        
+        <!-- BOTÓN CANCELAR ACTUALIZADO -->
+        <p onclick="cancelarCompra()" style="color:#dc3545; cursor:pointer; margin-top:20px; font-weight:bold; font-size: 15px;">✖ Cancelar Selección</p>
+    </div>
+</div>
+
+<!-- MODAL DEL GENERADOR -->
+<div class="modal" id="modal-generador">
+    <div class="modal-content">
+        <h2 style="color: var(--primary);">Tus Números 🍀</h2>
+        <p style="font-size: 14px; color: #666;">Elimina los que no quieras con la tachita roja.</p>
+        <div class="lista-generados" id="lista-nums-generados"></div>
+        <button class="btn-enviar" onclick="apartarGenerados()">APARTAR ESTOS NÚMEROS</button>
+        <p onclick="cerrarGenerador()" style="color:gray; cursor:pointer; margin-top:15px;">Descartar todo</p>
     </div>
 </div>
 
@@ -106,8 +143,6 @@
     <div style="flex: 1; text-align: center; font-size: 13px; opacity: 0.8; font-weight: 500; letter-spacing: 0.5px;">
         © 2026 JR RIFAS TJ - Transparencia y Confianza.
     </div>
-    
-    <!-- El botón ahora vive dentro de la cinta a la derecha -->
     <button onclick="location.href='admin.html'" style="background: transparent; border: none; cursor: pointer; opacity: 0.1; padding: 10px; font-size: 10px;">
         ⚙️
     </button>
@@ -119,17 +154,17 @@
     import { getFirestore, doc, onSnapshot, collection, setDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     // ======================================================
-    // ⬇️ CAMBIA AQUÍ LOS DATOS PARA CADA NUEVA RIFA ⬇️
+    // ⬇️ RECUADROS DE CONFIGURACIÓN DE LA RIFA ⬇️
+    // Modifica los datos de aquí para cambiar tu página web
     // ======================================================
     const CONFIG_RIFA = {
-        premio: "GANA $5,000 PESOS",       // Nombre del premio
-        precioBoleto: 70,                  // Precio por cada número
+        premio: "GANA $5,000 PESOS",            // Cambia el premio aquí
+        precioBoleto: 70,                       // Cambia el costo por boleto aquí
         bancoInfo: "BBVA: 4152 3144 9350 1483", // Tu cuenta bancaria
-        whatsappAdmin: "526634917818"      // Tu número de WhatsApp
+        whatsappAdmin: "526634917818"           // Tu número de WhatsApp de JR RIFAS TJ
     };
     // ======================================================
 
-    // Aplicar configuración a la pantalla
     document.getElementById('txt-premio').innerText = CONFIG_RIFA.premio;
     document.getElementById('txt-costo').innerText = `Boleto: $${CONFIG_RIFA.precioBoleto} MXN`;
     document.getElementById('txt-banco').innerText = CONFIG_RIFA.bancoInfo;
@@ -145,38 +180,80 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    
+    // VARIABLES GLOBALES
     let seleccionados = [];
+    let datosGlobales = {}; 
+    let numerosGeneradosTemporales = [];
+    
+    // CONFIGURACIÓN DE RIFA
+    const TOTAL_NUMEROS = 500;
+    const POR_PAGINA = 100;
+    let paginaActual = 1;
+    const nombreColeccion = "rifa_500"; 
 
-    function cargarTabla() {
-        onSnapshot(collection(db, "rifa_100"), (snap) => {
-            const grid = document.getElementById('grid');
-            grid.innerHTML = '';
-            const datos = {};
-            snap.forEach(d => datos[d.id] = d.data());
+    // Función para dar formato 001, 002, etc.
+    const formatNum = (n) => String(n).padStart(3, '0');
 
-            for (let i = 1; i <= 100; i++) {
-                const id = i.toString();
-                const btn = document.createElement('div');
-                btn.className = 'numero disponible';
-                btn.innerText = i;
-
-                if (datos[id]) {
-                    if (datos[id].estado === 'apartado') btn.className = 'numero apartado';
-                    if (datos[id].estado === 'vendido') btn.className = 'numero vendido';
-                }
-
-                if (btn.className.includes('disponible')) {
-                    if (seleccionados.includes(i)) btn.classList.add('seleccionado');
-                    btn.onclick = () => {
-                        if (seleccionados.includes(i)) seleccionados = seleccionados.filter(n => n !== i);
-                        else seleccionados.push(i);
-                        actualizarBarra();
-                        cargarTabla();
-                    };
-                }
-                grid.appendChild(btn);
-            }
+    function cargarDatos() {
+        onSnapshot(collection(db, nombreColeccion), (snap) => {
+            datosGlobales = {};
+            snap.forEach(d => datosGlobales[d.id] = d.data());
+            renderizarGrid();
         });
+    }
+
+    function renderizarGrid() {
+        const grid = document.getElementById('grid');
+        grid.innerHTML = '';
+        
+        const inicio = (paginaActual - 1) * POR_PAGINA + 1;
+        const fin = Math.min(paginaActual * POR_PAGINA, TOTAL_NUMEROS);
+
+        for (let i = inicio; i <= fin; i++) {
+            const id = formatNum(i);
+            const btn = document.createElement('div');
+            btn.className = 'numero disponible';
+            btn.innerText = id;
+
+            if (datosGlobales[id]) {
+                if (datosGlobales[id].estado === 'apartado') btn.className = 'numero apartado';
+                if (datosGlobales[id].estado === 'vendido') btn.className = 'numero vendido';
+            }
+
+            if (btn.className.includes('disponible')) {
+                if (seleccionados.includes(id)) btn.classList.add('seleccionado');
+                btn.onclick = () => {
+                    if (seleccionados.includes(id)) {
+                        seleccionados = seleccionados.filter(n => n !== id);
+                    } else {
+                        seleccionados.push(id);
+                    }
+                    actualizarBarra();
+                    renderizarGrid(); 
+                };
+            }
+            grid.appendChild(btn);
+        }
+        renderizarPaginacion();
+    }
+
+    function renderizarPaginacion() {
+        const pag = document.getElementById('paginacion');
+        pag.innerHTML = '';
+        const totalPaginas = Math.ceil(TOTAL_NUMEROS / POR_PAGINA);
+        
+        for(let i = 1; i <= totalPaginas; i++) {
+            const btn = document.createElement('button');
+            btn.className = `btn-page ${i === paginaActual ? 'active' : ''}`;
+            btn.innerText = `${formatNum((i-1)*POR_PAGINA + 1)} - ${formatNum(i*POR_PAGINA)}`;
+            btn.onclick = () => { 
+                paginaActual = i; 
+                renderizarGrid(); 
+                document.getElementById('grid').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            };
+            pag.appendChild(btn);
+        }
     }
 
     function actualizarBarra() {
@@ -188,11 +265,76 @@
         } else barra.style.display = 'none';
     }
 
+    // LÓGICA DEL GENERADOR DE NÚMEROS
+    window.abrirGenerador = () => {
+        const cantidad = parseInt(document.getElementById('cant-aleatorios').value);
+        if(!cantidad || cantidad < 1 || cantidad > 50) return alert("Ingresa una cantidad válida (1 a 50).");
+
+        let disponibles = [];
+        for(let i=1; i<=TOTAL_NUMEROS; i++) {
+            let id = formatNum(i);
+            if(!datosGlobales[id] && !seleccionados.includes(id)) {
+                disponibles.push(id);
+            }
+        }
+
+        if(disponibles.length < cantidad) return alert("No hay suficientes números disponibles para generar esa cantidad.");
+
+        disponibles.sort(() => 0.5 - Math.random());
+        numerosGeneradosTemporales = disponibles.slice(0, cantidad);
+        
+        actualizarModalGenerador();
+        document.getElementById('modal-generador').style.display = 'flex';
+    };
+
+    window.actualizarModalGenerador = () => {
+        const lista = document.getElementById('lista-nums-generados');
+        lista.innerHTML = '';
+        if(numerosGeneradosTemporales.length === 0) {
+            lista.innerHTML = '<p style="color:#666; width:100%;">No hay números.</p>';
+            return;
+        }
+        numerosGeneradosTemporales.forEach(num => {
+            const div = document.createElement('div');
+            div.className = 'num-generado';
+            div.innerHTML = `${num} <span onclick="eliminarGenerado('${num}')">✖</span>`;
+            lista.appendChild(div);
+        });
+    }
+
+    window.eliminarGenerado = (num) => {
+        numerosGeneradosTemporales = numerosGeneradosTemporales.filter(n => n !== num);
+        actualizarModalGenerador();
+    };
+
+    window.cerrarGenerador = () => {
+        document.getElementById('modal-generador').style.display = 'none';
+        numerosGeneradosTemporales = [];
+    };
+
+    window.apartarGenerados = () => {
+        if(numerosGeneradosTemporales.length === 0) return alert("Debes dejar al menos un número para apartar.");
+        seleccionados.push(...numerosGeneradosTemporales);
+        numerosGeneradosTemporales = [];
+        cerrarGenerador();
+        actualizarBarra();
+        renderizarGrid();
+        abrirModal(); 
+    };
+
+    // LÓGICA DEL MODAL FINAL (FORMULARIO)
     window.abrirModal = () => {
         document.getElementById('resumen-numeros').innerText = "Números: " + seleccionados.join(", ");
         document.getElementById('modal').style.display = 'flex';
     };
-    window.cerrarModal = () => document.getElementById('modal').style.display = 'none';
+    
+    // Función para CANCELAR la compra
+    window.cancelarCompra = () => {
+        seleccionados = []; // Se vacían los números elegidos
+        document.getElementById('modal').style.display = 'none'; // Se cierra la ventana
+        actualizarBarra(); // Se esconde el cuadro de abajo
+        renderizarGrid(); // Se quita el color azul de la cuadrícula
+    };
 
     document.getElementById('btn-final').onclick = async () => {
         const nom = document.getElementById('nombre').value;
@@ -201,7 +343,7 @@
 
         try {
             for (let num of seleccionados) {
-                await setDoc(doc(db, "rifa_100", num.toString()), { 
+                await setDoc(doc(db, nombreColeccion, num), { 
                     estado: 'apartado', 
                     nombre: nom, 
                     telefono: tel, 
@@ -213,8 +355,9 @@
         } catch (e) { alert("Error al conectar con la base de datos."); }
     };
 
+    // LÓGICA DE LA RULETA
     document.getElementById('btn-girar').onclick = async () => {
-        const q = query(collection(db, "rifa_100"), where("estado", "==", "vendido"));
+        const q = query(collection(db, nombreColeccion), where("estado", "==", "vendido"));
         const snap = await getDocs(q);
         const pagados = [];
         snap.forEach(d => pagados.push(d.id));
@@ -223,7 +366,7 @@
         
         let i = 0;
         const intervalo = setInterval(() => {
-            document.getElementById('pantalla-ganador').innerText = Math.floor(Math.random() * 100) + 1;
+            document.getElementById('pantalla-ganador').innerText = formatNum(Math.floor(Math.random() * TOTAL_NUMEROS) + 1);
             if (i++ > 40) {
                 clearInterval(intervalo);
                 const ganador = pagados[Math.floor(Math.random() * pagados.length)];
@@ -233,7 +376,7 @@
         }, 80);
     };
 
-    cargarTabla();
+    cargarDatos();
 </script>
 </body>
 </html>
