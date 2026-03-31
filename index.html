@@ -43,10 +43,11 @@
 
         .barra-flotante { position: fixed; bottom: 0; left: 0; width: 100%; background: white; padding: 15px 0; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); display: none; justify-content: center; align-items: center; gap: 20px; z-index: 200; }
         .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 1000; }
-        .modal-content { background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 380px; text-align: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 380px; text-align: center; position: relative; }
         input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
         .btn-enviar { background: var(--accent); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; text-decoration: none; display: inline-block; transition: 0.2s; }
         .btn-enviar:hover { background: #44735c; }
+        .btn-enviar:disabled { background: #ccc; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -95,6 +96,13 @@
         </div>
     </div>
     
+    <!-- BOTÓN VERIFICADOR DE BOLETOS -->
+    <div style="text-align: center; margin-bottom: 20px;">
+        <button onclick="abrirVerificador()" style="background: #17a2b8; color: white; padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 400px; transition: 0.2s;">
+            🔍 Verificar mis boletos
+        </button>
+    </div>
+
     <div class="generador-box">
         <h3 style="margin-top:0; color:var(--accent); font-size: 22px;">🎲 Máquina de la Suerte</h3>
         <p style="font-size:15px; color:#666; margin-bottom: 15px;">¿No sabes qué número elegir? ¡Te ayudamos!</p>
@@ -122,19 +130,23 @@
     <button class="btn-enviar" style="width:auto; padding: 10px 20px;" onclick="abrirModal()">APARTAR</button>
 </div>
 
-<!-- MODALES -->
+<!-- MODAL PRINCIPAL DE APARTADO -->
 <div class="modal" id="modal">
     <div class="modal-content">
-        <h2>Apartar Números</h2>
+        <!-- Botón X para cerrar sin desmarcar -->
+        <span onclick="cerrarModal()" style="position: absolute; top: 15px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; color: #999;">&times;</span>
+        
+        <h2 style="margin-top: 10px;">Apartar Números</h2>
         <p id="resumen-numeros" style="font-weight:bold; color:var(--accent)"></p>
+        
         <input type="text" id="nombre" placeholder="Nombre completo">
         <input type="tel" id="telefono" placeholder="WhatsApp (10 dígitos)">
-        
-        <!-- NUEVO CAMPO: Vengo de parte de -->
         <input type="text" id="invitado-por" placeholder="Vengo de parte de (Nombre y Apellido)">
         
         <button class="btn-enviar" id="btn-final">APARTAR Y NOTIFICAR</button>
-        <p onclick="cerrarModal()" style="color:gray; cursor:pointer; margin-top:15px;">Regresar</p>
+        
+        <!-- Botón para Cancelar y desmarcar todo -->
+        <p onclick="cancelarCompra()" style="color:#dc3545; cursor:pointer; margin-top:20px; font-size: 14px; text-decoration: underline;">Cancelar boletos</p>
     </div>
 </div>
 
@@ -145,6 +157,21 @@
         <div class="lista-generados" id="lista-nums-generados"></div>
         <button class="btn-enviar" onclick="apartarGenerados()">APARTAR ESTOS NÚMEROS</button>
         <p onclick="cerrarGenerador()" style="color:gray; cursor:pointer; margin-top:15px;">Descartar todo</p>
+    </div>
+</div>
+
+<!-- MODAL VERIFICADOR -->
+<div class="modal" id="modal-verificador">
+    <div class="modal-content">
+        <span onclick="cerrarVerificador()" style="position: absolute; top: 15px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; color: #999;">&times;</span>
+        <h2 style="margin-top: 10px; color:var(--primary);">Mis Boletos</h2>
+        <p style="font-size:14px; color:#666;">Ingresa el número de WhatsApp con el que apartaste.</p>
+        
+        <input type="tel" id="input-verificar" placeholder="Tu número a 10 dígitos" style="width:100%; padding:12px; margin-bottom:15px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box; font-size:16px;">
+        
+        <button id="btn-buscar-boletos" class="btn-enviar">BUSCAR BOLETOS</button>
+        
+        <div id="resultado-verificador" style="margin-top:20px; text-align:left; font-size:15px; padding: 10px; background: #f9f9f9; border-radius: 8px; display: none; border: 1px solid #eee;"></div>
     </div>
 </div>
 
@@ -306,48 +333,75 @@
         abrirModal(); 
     };
 
+    // Funciones del Modal Principal
     window.abrirModal = () => {
         document.getElementById('resumen-numeros').innerText = "Números: " + seleccionados.join(", ");
         document.getElementById('modal').style.display = 'flex';
     };
     
-    window.cancelarCompra = () => {
-        seleccionados = [];
+    window.cerrarModal = () => {
         document.getElementById('modal').style.display = 'none';
+    };
+
+    window.cancelarCompra = () => {
+        seleccionados = []; // Desmarca todos los números
+        document.getElementById('modal').style.display = 'none';
+        document.getElementById('nombre').value = '';
+        document.getElementById('telefono').value = '';
+        document.getElementById('invitado-por').value = '';
         actualizarBarra();
         renderizarGrid();
     };
 
-        document.getElementById('btn-final').onclick = async () => {
+    document.getElementById('btn-final').onclick = async () => {
         const nom = document.getElementById('nombre').value;
         const tel = document.getElementById('telefono').value;
-        const invitadoPor = document.getElementById('invitado-por').value; // Capturamos el nuevo campo
+        const invitadoPor = document.getElementById('invitado-por').value; 
 
         if (!nom || !tel) return alert("Por favor, llena tus datos.");
 
+        const btn = document.getElementById('btn-final');
+        btn.innerText = "PROCESANDO... ⏳";
+        btn.disabled = true;
+
         try {
             for (let num of seleccionados) {
-                await setDoc(doc(db, "rifa_500", num.toString()), { 
+                await setDoc(doc(db, nombreColeccion, num.toString()), { 
                     estado: 'apartado', 
                     nombre: nom, 
                     telefono: tel, 
-                    invitadoPor: invitadoPor || "Ninguno", // Se guarda en Firebase
+                    invitadoPor: invitadoPor || "Ninguno", 
                     fecha: new Date().toLocaleString() 
                 });
             }
             
-            // Construimos el mensaje de WhatsApp
             let texto = `¡Hola JR RIFAS TJ! 👋\n\nQuiero apartar estos números: *${seleccionados.join(", ")}*\nTotal a pagar: *$${seleccionados.length * CONFIG_RIFA.precioBoleto}*\n\nNombre: *${nom}*`;
             
-            // Si llenaron el campo de invitado, lo agregamos al mensaje
             if (invitadoPor.trim() !== "") {
                 texto += `\nVengo de parte de: *${invitadoPor}*`;
             }
             
             texto += `\n\nYa tengo los datos de pago.\n\n🎁 *Recuerda que al invitar a 3 personas y realicen su pago, tienes un boleto completamente GRATIS.*`;
             
+            // Limpiamos todo el formulario y desmarcamos antes de ir a WhatsApp
+            seleccionados = [];
+            document.getElementById('nombre').value = '';
+            document.getElementById('telefono').value = '';
+            document.getElementById('invitado-por').value = '';
+            actualizarBarra();
+            renderizarGrid();
+            cerrarModal();
+
+            // Restaurar el botón a su estado normal por si la persona presiona "Atrás"
+            btn.innerText = "APARTAR Y NOTIFICAR";
+            btn.disabled = false;
+
             window.location.href = `https://wa.me/${CONFIG_RIFA.whatsappAdmin}?text=${encodeURIComponent(texto)}`;
-        } catch (e) { alert("Error al conectar con la base de datos."); }
+        } catch (e) { 
+            alert("Error al conectar con la base de datos."); 
+            btn.innerText = "APARTAR Y NOTIFICAR";
+            btn.disabled = false;
+        }
     };
 
     document.getElementById('btn-girar').onclick = async () => {
@@ -366,6 +420,61 @@
                 document.getElementById('msg-ruleta').innerHTML = `🎊 ¡GANADOR NÚMERO #${ganador}! 🎊`;
             }
         }, 80);
+    };
+
+    // Funciones del Verificador de Boletos
+    window.abrirVerificador = () => {
+        document.getElementById('modal-verificador').style.display = 'flex';
+        document.getElementById('resultado-verificador').style.display = 'none';
+        document.getElementById('input-verificar').value = '';
+    };
+
+    window.cerrarVerificador = () => {
+        document.getElementById('modal-verificador').style.display = 'none';
+    };
+
+    document.getElementById('btn-buscar-boletos').onclick = async () => {
+        const tel = document.getElementById('input-verificar').value.trim();
+        const divResultado = document.getElementById('resultado-verificador');
+        
+        if (!tel) return alert("Por favor ingresa tu número de WhatsApp.");
+        
+        divResultado.style.display = 'block';
+        divResultado.innerHTML = "<p style='text-align:center;'>Buscando boletos... ⏳</p>";
+        
+        try {
+            const q = query(collection(db, nombreColeccion), where("telefono", "==", tel));
+            const querySnapshot = await getDocs(q);
+            
+            let apartados = [];
+            let vendidos = [];
+            let nombreCliente = "";
+            
+            querySnapshot.forEach((d) => {
+                const data = d.data();
+                nombreCliente = data.nombre; 
+                
+                if(data.estado === 'apartado') apartados.push(d.id);
+                if(data.estado === 'vendido') vendidos.push(d.id);
+            });
+            
+            if(apartados.length === 0 && vendidos.length === 0) {
+                divResultado.innerHTML = "<p style='color:#dc3545; text-align:center; font-weight:bold;'>❌ No se encontraron boletos con este número.</p>";
+            } else {
+                let html = `<p style="margin:0 0 10px 0; color:var(--primary);">Hola, <b>${nombreCliente}</b>. Estos son tus números:</p>`;
+                
+                if(vendidos.length > 0) {
+                    html += `<p style="color:#28a745; margin:5px 0;">✅ <b>Pagados:</b> ${vendidos.join(', ')}</p>`;
+                }
+                if(apartados.length > 0) {
+                    html += `<p style="color:#b58900; margin:5px 0;">⏳ <b>Pendientes:</b> ${apartados.join(', ')}</p>`;
+                }
+                
+                divResultado.innerHTML = html;
+            }
+        } catch(e) {
+            divResultado.innerHTML = "<p style='color:red; text-align:center;'>Hubo un error al buscar. Intenta de nuevo.</p>";
+        }
     };
 
     cargarDatos();
