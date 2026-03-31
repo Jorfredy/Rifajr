@@ -126,11 +126,15 @@
 <div class="modal" id="modal">
     <div class="modal-content">
         <h2>Apartar Números</h2>
-        <p id="resumen-numeros" style="font-weight:bold; color:var(--accent); word-break: break-all;"></p>
+        <p id="resumen-numeros" style="font-weight:bold; color:var(--accent)"></p>
         <input type="text" id="nombre" placeholder="Nombre completo">
         <input type="tel" id="telefono" placeholder="WhatsApp (10 dígitos)">
+        
+        <!-- NUEVO CAMPO: Vengo de parte de -->
+        <input type="text" id="invitado-por" placeholder="Vengo de parte de (Nombre y Apellido)">
+        
         <button class="btn-enviar" id="btn-final">APARTAR Y NOTIFICAR</button>
-        <p onclick="cancelarCompra()" style="color:#dc3545; cursor:pointer; margin-top:20px; font-weight:bold; font-size: 15px;">✖ Cancelar Selección</p>
+        <p onclick="cerrarModal()" style="color:gray; cursor:pointer; margin-top:15px;">Regresar</p>
     </div>
 </div>
 
@@ -314,20 +318,34 @@
         renderizarGrid();
     };
 
-    document.getElementById('btn-final').onclick = async () => {
+        document.getElementById('btn-final').onclick = async () => {
         const nom = document.getElementById('nombre').value;
         const tel = document.getElementById('telefono').value;
+        const invitadoPor = document.getElementById('invitado-por').value; // Capturamos el nuevo campo
+
         if (!nom || !tel) return alert("Por favor, llena tus datos.");
+
         try {
             for (let num of seleccionados) {
-                await setDoc(doc(db, nombreColeccion, num), { 
+                await setDoc(doc(db, "rifa_500", num.toString()), { 
                     estado: 'apartado', 
                     nombre: nom, 
                     telefono: tel, 
+                    invitadoPor: invitadoPor || "Ninguno", // Se guarda en Firebase
                     fecha: new Date().toLocaleString() 
                 });
             }
-            const texto = `¡Hola JR RIFAS TJ! 👋\n\nQuiero apartar estos números: *${seleccionados.join(", ")}*\nTotal a pagar: *$${seleccionados.length * CONFIG_RIFA.precioBoleto}*\n\nNombre: *${nom}*\n\nYa tengo los datos de pago.`;
+            
+            // Construimos el mensaje de WhatsApp
+            let texto = `¡Hola JR RIFAS TJ! 👋\n\nQuiero apartar estos números: *${seleccionados.join(", ")}*\nTotal a pagar: *$${seleccionados.length * CONFIG_RIFA.precioBoleto}*\n\nNombre: *${nom}*`;
+            
+            // Si llenaron el campo de invitado, lo agregamos al mensaje
+            if (invitadoPor.trim() !== "") {
+                texto += `\nVengo de parte de: *${invitadoPor}*`;
+            }
+            
+            texto += `\n\nYa tengo los datos de pago.\n\n🎁 *Recuerda que al invitar a 3 personas y realicen su pago, tienes un boleto completamente GRATIS.*`;
+            
             window.location.href = `https://wa.me/${CONFIG_RIFA.whatsappAdmin}?text=${encodeURIComponent(texto)}`;
         } catch (e) { alert("Error al conectar con la base de datos."); }
     };
