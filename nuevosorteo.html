@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión y Sorteos - JR RIFAS TJ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #2e4453; color: #333; margin: 0; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 20px; box-sizing: border-box; }
+        
+        /* Estilos del Login */
+        .login-card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); width: 100%; max-width: 400px; text-align: center; margin-top: 10vh; }
+        
+        /* Estilos del Panel Principal */
+        .dashboard-container { display: none; width: 100%; max-width: 800px; gap: 20px; flex-wrap: wrap; }
+        .config-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); flex: 1; min-width: 300px; }
+        
+        h2 { color: #2e4453; margin-top: 0; border-bottom: 3px solid #558c70; padding-bottom: 10px; font-size: 22px; }
+        h2 span { font-size: 24px; }
+        
+        .input-group { margin-bottom: 20px; }
+        label { font-size: 14px; font-weight: bold; color: #555; display: block; margin-bottom: 5px; }
+        .input-con-icono { position: relative; display: flex; align-items: center; }
+        .input-con-icono span { position: absolute; left: 15px; color: #558c70; font-weight: bold; font-size: 18px; }
+        input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        .input-con-icono input { padding-left: 35px; } 
+        
+        .preview-texto { background: #f4f7f6; padding: 10px; border-radius: 8px; font-size: 13px; color: #666; margin-top: 5px; font-style: italic; border-left: 3px solid #558c70; }
+        
+        button { width: 100%; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 16px; }
+        .btn-login { background: #558c70; color: white; margin-top: 10px; }
+        .btn-login:hover { background: #44735c; }
+        .btn-guardar { background: #17a2b8; color: white; margin-top: 10px; }
+        .btn-guardar:hover { background: #138496; }
+        .btn-ganador { background: #ffc107; color: #333; margin-top: 10px; }
+        .btn-ganador:hover { background: #e0a800; }
+        .btn-volver { background: #eee; color: #333; flex: 1; }
+        .btn-volver:hover { background: #ddd; }
+        
+        .botones-nav { display: flex; gap: 10px; width: 100%; margin-top: 10px; flex-wrap: wrap; }
+    </style>
+</head>
+<body>
+
+    <!-- SECCIÓN DE LOGIN -->
+    <div id="login-section" class="login-card">
+        <h2 style="border:none; padding:0;">Panel JR RIFAS</h2>
+        <p style="color: #666; font-size: 14px; margin-top:-5px;">Acceso a Configuración y Ganadores</p>
+        <input type="email" id="email" placeholder="Correo electrónico" style="margin-bottom:10px;">
+        <input type="password" id="password" placeholder="Contraseña">
+        <button class="btn-login" id="btn-entrar">INICIAR SESIÓN</button>
+        <p id="error-msg" style="color: red; font-size: 12px; margin-top: 10px;"></p>
+        <button class="btn-volver" style="padding:10px; margin-top:10px;" onclick="location.href='admin.html'">🔙 Ir a Lista de Boletos</button>
+    </div>
+
+    <!-- SECCIÓN PRINCIPAL -->
+    <div id="dashboard-section" class="dashboard-container">
+        
+        <!-- TARJETA 1: REGISTRAR GANADOR -->
+        <div class="config-card" style="border-top: 5px solid #ffc107;">
+            <h2><span>🏆</span> Registrar Ganador</h2>
+            <p style="font-size: 13px; color: #666; margin-bottom: 20px;">
+                Escribe el número ganador. El sistema extraerá el nombre (sin teléfono) y preparará la ruta para su foto en <b>ganadoresf/</b>.
+            </p>
+
+            <div class="input-group">
+                <label>Número Ganador (Ej. 5, 24, 150):</label>
+                <input type="number" id="num-ganador" placeholder="Ingresa el número premiado" min="1" max="500">
+            </div>
+
+            <div style="background: #fff3cd; padding: 10px; border-radius: 8px; font-size: 12px; color: #856404; margin-bottom: 15px; border: 1px dashed #ffe8a1;">
+                <b>📸 Sobre la foto:</b> Recuerda subir la imagen a tu servidor en formato .jpg y en minúsculas (Ej: <i>025_juan.jpg</i>).
+            </div>
+
+            <button class="btn-ganador" id="btn-ganador" onclick="registrarGanador()">🏆 GUARDAR EN HISTORIAL</button>
+        </div>
+
+        <!-- TARJETA 2: NUEVO SORTEO -->
+        <div class="config-card" style="border-top: 5px solid #17a2b8;">
+            <h2><span>⚙️</span> Lanzar Nuevo Sorteo</h2>
+            <p style="font-size: 13px; color: #666; margin-bottom: 20px;">Ingresa únicamente las cantidades. El sistema armará los textos para la página web automáticamente.</p>
+
+            <div class="input-group">
+                <label>Monto del Premio a Ganar:</label>
+                <div class="input-con-icono">
+                    <span>$</span>
+                    <input type="number" id="num-premio" placeholder="Ej. 4000" oninput="actualizarVistasPrevia()">
+                </div>
+                <div class="preview-texto" id="prev-premio">Se mostrará: GANA $0 PESOS</div>
+            </div>
+
+            <div class="input-group">
+                <label>Costo por Boleto:</label>
+                <div class="input-con-icono">
+                    <span>$</span>
+                    <input type="number" id="num-precio" placeholder="Ej. 30" oninput="actualizarVistasPrevia()">
+                </div>
+                <div class="preview-texto" id="prev-precio">Se mostrará: Boleto: $0 MXN</div>
+            </div>
+
+            <div class="input-group">
+                <label>Meta para realizar el sorteo (Cant. de boletos):</label>
+                <input type="number" id="num-meta" placeholder="Ej. 200" style="padding-left: 12px;" oninput="actualizarVistasPrevia()">
+                <div class="preview-texto" id="prev-meta">Se mostrará: 🎯 La rifa se lanza al vender un mínimo de 0 boletos.</div>
+            </div>
+
+            <div class="input-group" style="border-top: 1px dashed #ccc; padding-top: 20px;">
+                <label>🔴 Link En Vivo (YouTube/Facebook):</label>
+                <input type="url" id="link-envivo" placeholder="Deja vacío para usar la ruleta..." style="padding-left: 12px;">
+            </div>
+
+            <button class="btn-guardar" onclick="guardarNuevoSorteo()" id="btn-save">🚀 LANZAR NUEVO SORTEO</button>
+        </div>
+
+        <!-- BOTONES DE NAVEGACIÓN -->
+        <div class="botones-nav">
+            <button class="btn-volver" style="background: #17a2b8; color: white;" onclick="window.open('index.html', '_blank')">🏠 Ver Página Inicio</button>
+            <button class="btn-volver" onclick="location.href='admin.html'">🔙 Volver a Lista de Boletos</button>
+        </div>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, collection } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCsjIOcnEFLfqUC5hbVGNh6ti3v1dHGcCc",
+      authDomain: "rifas-jr-tj.firebaseapp.com",
+      projectId: "rifas-jr-tj",
+      storageBucket: "rifas-jr-tj.firebasestorage.app",
+      messagingSenderId: "229988706437",
+      appId: "1:229988706437:web:86c79a2b8139b9a18961ec"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // === LÓGICA DE LOGIN ===
+    document.getElementById('btn-entrar').onclick = async () => {
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('password').value;
+        const errorMsg = document.getElementById('error-msg');
+        
+        try {
+            await signInWithEmailAndPassword(auth, email, pass);
+        } catch (error) {
+            errorMsg.innerText = "Correo o contraseña incorrectos.";
+        }
+    };
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('dashboard-section').style.display = 'flex';
+            cargarDatosActuales();
+        } else {
+            document.getElementById('login-section').style.display = 'block';
+            document.getElementById('dashboard-section').style.display = 'none';
+        }
+    });
+
+    const formatoDinero = (num) => Number(num).toLocaleString('en-US');
+
+    // === LÓGICA DE REGISTRO DE GANADOR ===
+    window.registrarGanador = async () => {
+        const numeroInput = document.getElementById('num-ganador').value;
+        if(!numeroInput) return alert("Ingresa el número ganador.");
+        
+        const numero = numeroInput.toString().padStart(3, '0'); 
+        
+        const btn = document.getElementById('btn-ganador');
+        btn.innerText = "Buscando ganador... ⏳";
+        btn.disabled = true;
+
+        try {
+            const docBoleto = await getDoc(doc(db, "rifa_500", numero));
+
+            if (!docBoleto.exists() || docBoleto.data().estado !== 'vendido') {
+                alert(`❌ El boleto #${numero} no está registrado como VENDIDO o no existe.`);
+                btn.innerText = "🏆 GUARDAR EN HISTORIAL";
+                btn.disabled = false;
+                return;
+            }
+
+            const datosBoleto = docBoleto.data();
+            const nombreCompleto = datosBoleto.nombre.trim();
+            
+            const primerNombre = nombreCompleto.split(' ')[0].toLowerCase();
+            const rutaFoto = `ganadoresf/${numero}_${primerNombre}.jpg`;
+
+            const docConf = await getDoc(doc(db, "configuracion", "general"));
+            let premioGanado = "Premio de Sorteo";
+            if(docConf.exists() && docConf.data().premio) {
+                premioGanado = docConf.data().premio; 
+            }
+
+            const idGanador = numero + "_" + Date.now(); 
+            await setDoc(doc(db, "historial_ganadores", idGanador), {
+                numero_ganador: numero,
+                nombre: nombreCompleto,
+                premio: premioGanado,
+                ruta_foto: rutaFoto,
+                fecha: new Date().toLocaleDateString()
+            });
+
+            alert(`✅ ¡GANADOR REGISTRADO CON ÉXITO!\n\nNúmero: ${numero}\nNombre: ${nombreCompleto}\n\n⚠️ Recuerda subir la imagen a tu servidor con este nombre exacto:\n👉 ${numero}_${primerNombre}.jpg`);
+            
+            document.getElementById('num-ganador').value = ""; 
+        } catch (error) {
+            alert("❌ Error al guardar ganador: " + error.message);
+        }
+
+        btn.innerText = "🏆 GUARDAR EN HISTORIAL";
+        btn.disabled = false;
+    };
+
+    // === LÓGICA DE NUEVO SORTEO ===
+    window.actualizarVistasPrevia = () => {
+        const premio = document.getElementById('num-premio').value || "0";
+        const precio = document.getElementById('num-precio').value || "0";
+        const meta = document.getElementById('num-meta').value || "0";
+
+        document.getElementById('prev-premio').innerText = `Se mostrará: GANA $${formatoDinero(premio)} PESOS`;
+        document.getElementById('prev-precio').innerText = `Se mostrará: Boleto:$${formatoDinero(precio)} MXN`;
+        document.getElementById('prev-meta').innerText = `Se mostrará: 🎯 La rifa se lanza al vender un mínimo de ${meta} boletos.`;
+    };
+
+    async function cargarDatosActuales() {
+        const docSnap = await getDoc(doc(db, "configuracion", "general"));
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            document.getElementById('num-precio').value = data.precioBoleto || "";
+            document.getElementById('link-envivo').value = data.linkEnVivo || "";
+            
+            if(data.premio) {
+                let soloNumPremio = data.premio.replace(/\D/g, ""); 
+                document.getElementById('num-premio').value = soloNumPremio;
+            }
+            if(data.metaSorteo) {
+                let soloNumMeta = data.metaSorteo.replace(/\D/g, "");
+                document.getElementById('num-meta').value = soloNumMeta;
+            }
+            window.actualizarVistasPrevia();
+        }
+    }
+
+    window.guardarNuevoSorteo = async () => {
+        const premioNum = document.getElementById('num-premio').value;
+        const precioNum = document.getElementById('num-precio').value;
+        const metaNum = document.getElementById('num-meta').value;
+        const link = document.getElementById('link-envivo').value;
+
+        if(!premioNum || !precioNum || !metaNum) {
+            return alert("⚠️ Por favor, llena las 3 cantidades principales.");
+        }
+
+        // --- ALERTA DE CONFIRMACIÓN AGREGADA AQUÍ ---
+        const seguro = confirm("⚠️ ¿Estás seguro de lanzar un NUEVO SORTEO?\n\nEsto cambiará los precios, premios y metas en tu página principal inmediatamente para todos tus clientes.");
+        if (!seguro) return;
+        // ---------------------------------------------
+
+        const btn = document.getElementById('btn-save');
+        btn.innerText = "Configurando... ⏳";
+        btn.disabled = true;
+
+        const textoPremioFinal = `GANA $${formatoDinero(premioNum)} PESOS`;
+        const textoMetaFinal = `La rifa se lanza al vender un mínimo de ${metaNum} boletos.`;
+
+        try {
+            await setDoc(doc(db, "configuracion", "general"), {
+                premio: textoPremioFinal,
+                precioBoleto: parseInt(precioNum),
+                metaSorteo: textoMetaFinal,
+                linkEnVivo: link
+            }, { merge: true });
+            
+            alert("✅ ¡Nuevo sorteo configurado!\n\nLa página principal ha sido actualizada con los nuevos precios y metas.");
+        } catch (error) {
+            alert("❌ Error: " + error.message);
+        }
+        
+        btn.innerText = "🚀 LANZAR NUEVO SORTEO";
+        btn.disabled = false;
+    };
+</script>
+</body>
+</html>
