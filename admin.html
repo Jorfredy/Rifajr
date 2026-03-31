@@ -56,10 +56,17 @@
     <div id="admin-section" class="admin-panel">
         <div class="header-admin">
             <h2 style="color: #2e4453; margin: 0;">Control de Rifa - JR RIFAS TJ</h2>
-            <div class="header-botones">
+                       <div class="header-botones">
+                <!-- Botón para ir a ver la página pública -->
+                <button class="btn-secundario" style="background: #17a2b8; color: white;" onclick="window.open('index.html', '_blank')">🏠 Ver Página Inicio</button>
+                
+                <!-- Botón para ir a tu nueva página de sorteos/ganadores -->
+                <button class="btn-secundario" style="background: #ffc107; color: #333;" onclick="location.href='nuevosorteo.html'">⚙️ Sorteos y Ganadores</button>
+                
                 <button class="btn-peligro" onclick="liberarTodos()">⚠️ Liberar Todos</button>
                 <button class="btn-secundario" onclick="cerrarSesion()">Cerrar Sesión</button>
             </div>
+
         </div>
 
         <div class="resumen-container">
@@ -354,8 +361,18 @@
     }
 
     // FUNCIONES DE ACCIÓN (Vender, Liberar, Canjear)
-    window.marcarVendido = async (id) => { await updateDoc(doc(db, nombreColeccion, id), { estado: 'vendido' }); };
-    window.liberar = async (id) => { if(confirm("¿Liberar número " + id + "?")) await setDoc(doc(db, nombreColeccion, id), { estado: 'disponible' }); };
+        window.marcarVendido = async (id) => { 
+        if(confirm(`✅ ¿Confirmas que ya recibiste el pago del boleto #${id}?\n\nEsto lo marcará como VENDIDO (verde) y ya nadie más podrá tomarlo.`)) {
+            await updateDoc(doc(db, nombreColeccion, id), { estado: 'vendido' }); 
+        }
+    };
+
+    window.liberar = async (id) => { 
+        if(confirm(`⚠️ ¿Seguro que deseas LIBERAR el boleto #${id}?\n\nEl número volverá a estar disponible en blanco para que cualquier persona lo compre.`)) {
+            await setDoc(doc(db, nombreColeccion, id), { estado: 'disponible' }); 
+        }
+    };
+
 
     window.canjearPremio = async (nombre) => {
         if(confirm(`¿Confirmas que le vas a dar su boleto gratis a ${nombre}?\n\nEsto restará 3 invitados de su cuenta.`)) {
