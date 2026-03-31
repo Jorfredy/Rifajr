@@ -381,7 +381,11 @@
                 texto += `\nVengo de parte de: *${invitadoPor}*`;
             }
             
-            texto += `\n\nYa tengo los datos de pago.\n\n🎁 *Recuerda que al invitar a 3 personas y realicen su pago, tienes un boleto completamente GRATIS.*`;
+             texto += `\n\n✅ *Recuerda enviar tu comprobante de pago a este chat.*`;
+            
+             texto += `\n\n💳 *Aquí están las cuentas donde realizar tu pago, ya sea mediante transferencia o depósito:*\n\n${CONFIG_RIFA.bancoInfo.replace(/<br>/g, '\n')}`
+
+             texto += `\n\n🎁 *Recuerda que al invitar a 3 personas y realicen su pago, tienes un boleto completamente GRATIS.*.*`;
             
             // Limpiamos todo el formulario y desmarcamos antes de ir a WhatsApp
             seleccionados = [];
