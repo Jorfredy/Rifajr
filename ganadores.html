@@ -7,7 +7,7 @@
     <link rel="icon" type="image/png" href="favicon.png">
     <style>
         :root { --primary: #2e4453; --accent: #558c70; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; text-align: center; color: var(--primary); }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; text-align: center; color: var(--primary); padding-bottom: 50px;}
         header { background: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         .logo-box { border: 3px solid var(--primary); padding: 5px 12px; font-weight: bold; font-size: 22px; color: var(--accent); border-radius: 4px; text-decoration: none; }
         .container { max-width: 800px; margin: 30px auto; padding: 0 20px; }
@@ -16,30 +16,36 @@
         .card-ganador { 
             background: white; border-radius: 15px; padding: 25px; margin-bottom: 25px; 
             display: flex; align-items: center; gap: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
-            border-left: 6px solid var(--accent); text-align: left; 
+            border-left: 6px solid var(--accent); text-align: left; transition: transform 0.2s;
         }
+        .card-ganador:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+        
         .foto-premio { 
             width: 120px; height: 120px; background: #eee; border-radius: 12px; 
             overflow: hidden; display: flex; align-items: center; justify-content: center; 
-            font-size: 40px; border: 1px solid #ddd;
+            font-size: 40px; border: 1px solid #ddd; flex-shrink: 0;
         }
         .info { flex: 1; }
         .badge { background: var(--primary); color: white; padding: 4px 10px; border-radius: 10px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
-        .btn-evidencia { 
-            background: var(--accent); color: white; text-decoration: none; 
-            padding: 8px 15px; border-radius: 5px; font-size: 13px; font-weight: bold; 
-            display: inline-block; margin-top: 10px; transition: 0.3s;
+        
+        /* Estilos de Paginación */
+        .paginacion { display: flex; justify-content: center; gap: 8px; margin-top: 30px; flex-wrap: wrap; }
+        .btn-page { padding: 10px 15px; border: 1px solid var(--primary); background: white; color: var(--primary); border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 14px; }
+        .btn-page.active { background: var(--primary); color: white; }
+        .btn-page:hover:not(.active) { background: #e2e8e4; }
+
+        @media (max-width: 500px) {
+            .card-ganador { flex-direction: column; text-align: center; }
+            .foto-premio { width: 100%; height: 200px; }
         }
-        .btn-evidencia:hover { opacity: 0.8; transform: scale(1.05); }
     </style>
 </head>
 <body>
 
     <header>
-            <a href="/" style="display:flex; align-items:center; text-decoration:none;">
-        <img src="logo-rifas.png" alt="JR RIFAS TJ" style="height: 60px; width: auto; max-width: 250px;">
-    </a>
-
+        <a href="/" style="display:flex; align-items:center; text-decoration:none;">
+            <img src="logo-rifas.png" alt="JR RIFAS TJ" style="height: 60px; width: auto; max-width: 250px;">
+        </a>
         <a href="/" style="color:var(--accent); font-weight:bold; text-decoration:none;">🎟️ Volver a la Rifa</a>
     </header>
 
@@ -47,49 +53,142 @@
         <h1 style="font-size: 32px; color: var(--accent);">🏆 MURO DE LA SUERTE</h1>
         <p style="margin-bottom: 40px; opacity: 0.8;">Evidencias reales de nuestros sorteos en México</p>
 
-        <!-- ============================================================ -->
-        <!-- ⬇️ SECCIÓN TEMPORAL: BORRA ESTO CUANDO TENGAS UN GANADOR ⬇️ -->
-        <div id="proximamente" class="card-ganador" style="justify-content: center; border-left: none; opacity: 0.6; padding: 50px;">
-            <div style="text-align: center;">
-                <span style="font-size: 50px;">🎯</span>
-                <h2 style="margin: 10px 0;">¡PRÓXIMAMENTE EL PRIMER GANADOR!</h2>
-                <p>Aquí verás la foto y el boleto premiado del sorteo de <b>$4,000 MXN</b>.</p>
-                <p><b>¿Serás tú el primero en aparecer aquí?</b></p>
-            </div>
+        <!-- Contenedor donde se inyectan las tarjetas -->
+        <div id="contenedor-ganadores">
+            <p style="text-align: center; color: #666;">Cargando historial de ganadores... ⏳</p>
         </div>
-        <!-- ⬆️ BORRA HASTA AQUÍ CUANDO YA TENGAS GANADOR ⬆️ -->
-        <!-- ============================================================ -->
 
-
-        <!-- ============================================================ -->
-        <!-- ⬇️ PASOS PARA AGREGAR UN GANADOR: ⬇️ -->
-        <!-- 1. Borra el bloque de "PRÓXIMAMENTE" de arriba. -->
-        <!-- 2. Copia el bloque de abajo y pégalo aquí. -->
-        <!-- 3. Cambia los datos (Nombre, Boleto, Link de Foto). -->
-
-        <!--
-        <div class="card-ganador">
-            <div class="foto-premio">
-                <img src="LINK_DE_TU_FOTO_AQUI.jpg" alt="Ganador" style="width:100%; height:100%; object-fit:cover;">
-            </div>
-            <div class="info">
-                <span class="badge">Sorteo Finalizado</span>
-                <h2 style="margin:8px 0; color: var(--primary);">$5,000 PESOS MXN</h2>
-                <p style="margin:0; color:#555;">Ganador: <b>NOMBRE_DEL_SUERTUDO</b></p>
-                <p style="margin:0; color:#555;">Boleto Premiado: <b>#XX</b></p>
-                <p style="margin:5px 0 0 0; font-size:12px; color: #888;">Fecha: 26 de Marzo, 2026</p>
-                
-                <a href="LINK_AL_VIDEO_O_POST_FACEBOOK" class="btn-evidencia" target="_blank">📸 Ver Evidencia de Pago</a>
-            </div>
-        </div>
-        -->
-        <!-- ============================================================ -->
+        <!-- Contenedor de la Paginación -->
+        <div class="paginacion" id="paginacion"></div>
 
     </div>
 
-    <footer style="margin-top: 50px; padding-bottom: 30px; font-size: 14px; opacity: 0.6;">
+    <footer style="margin-top: 50px; padding-top: 30px; border-top: 1px solid #ddd; font-size: 14px; opacity: 0.6;">
         © 2026 JR RIFAS TJ - Transparencia y Confianza.
     </footer>
 
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    // Configuración de tu proyecto en Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyCsjIOcnEFLfqUC5hbVGNh6ti3v1dHGcCc",
+      authDomain: "rifas-jr-tj.firebaseapp.com",
+      projectId: "rifas-jr-tj",
+      storageBucket: "rifas-jr-tj.firebasestorage.app",
+      messagingSenderId: "229988706437",
+      appId: "1:229988706437:web:86c79a2b8139b9a18961ec"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Variables globales para la paginación
+    let todosLosGanadores = [];
+    let paginaActual = 1;
+    const GANADORES_POR_PAGINA = 5; // Aquí controlas cuántos se ven por página
+
+    async function cargarGanadores() {
+        const contenedor = document.getElementById('contenedor-ganadores');
+        
+        try {
+            const querySnapshot = await getDocs(collection(db, "historial_ganadores"));
+            
+            // Si no hay ganadores, mostramos el mensaje de Próximamente
+            if (querySnapshot.empty) {
+                contenedor.innerHTML = `
+                    <div id="proximamente" class="card-ganador" style="justify-content: center; border-left: none; opacity: 0.6; padding: 50px; flex-direction: column;">
+                        <span style="font-size: 60px;">🎯</span>
+                        <h2 style="margin: 10px 0; text-align: center;">¡PRÓXIMAMENTE EL PRIMER GANADOR!</h2>
+                        <p style="text-align: center; margin-bottom:0;">Aún no hay registros en nuestro historial.</p>
+                        <p style="text-align: center; margin-top:5px;"><b>¿Serás tú el primero en aparecer aquí?</b></p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Llenar el arreglo con todos los ganadores
+            todosLosGanadores = [];
+            querySnapshot.forEach((doc) => {
+                todosLosGanadores.push({ id: doc.id, ...doc.data() });
+            });
+
+            // Ordenar: Los más recientes primero (basado en la fecha del ID)
+            todosLosGanadores.sort((a, b) => {
+                let tiempoA = parseInt(a.id.split('_')[1] || 0);
+                let tiempoB = parseInt(b.id.split('_')[1] || 0);
+                return tiempoB - tiempoA;
+            });
+
+            // Dibujar la primera página
+            renderizarLista();
+
+        } catch (error) {
+            contenedor.innerHTML = `<p style="color:red; text-align:center; font-weight:bold;">❌ Hubo un error al cargar el muro de ganadores. Intenta recargar la página.</p>`;
+        }
+    }
+
+    function renderizarLista() {
+        const contenedor = document.getElementById('contenedor-ganadores');
+        contenedor.innerHTML = "";
+
+        // Calcular qué pedazo del arreglo mostrar según la página actual
+        const indiceInicio = (paginaActual - 1) * GANADORES_POR_PAGINA;
+        const indiceFin = indiceInicio + GANADORES_POR_PAGINA;
+        const ganadoresPagina = todosLosGanadores.slice(indiceInicio, indiceFin);
+
+        let htmlFinal = "";
+        ganadoresPagina.forEach((g) => {
+            htmlFinal += `
+            <div class="card-ganador">
+                <div class="foto-premio">
+                    <img src="${g.ruta_foto}" alt="Ganador ${g.nombre}" 
+                         onerror="this.onerror=null; this.src='https://via.placeholder.com/150x150/eeeeee/aaaaaa?text=Ganador';" 
+                         style="width:100%; height:100%; object-fit:cover;">
+                </div>
+                <div class="info">
+                    <span class="badge">Sorteo Finalizado</span>
+                    <h2 style="margin:8px 0; color: var(--primary);">${g.premio}</h2>
+                    <p style="margin:0; color:#555;">Ganador: <b>${g.nombre}</b></p>
+                    <p style="margin:0; color:#555;">Boleto Premiado: <b style="color:var(--accent); font-size:18px;">#${g.numero_ganador}</b></p>
+                    <p style="margin:5px 0 0 0; font-size:12px; color: #888;">Fecha de registro: ${g.fecha}</p>
+                </div>
+            </div>
+            `;
+        });
+
+        contenedor.innerHTML = htmlFinal;
+
+        // Dibujar los botones de paginación
+        renderizarPaginacion();
+    }
+
+    function renderizarPaginacion() {
+        const pag = document.getElementById('paginacion');
+        pag.innerHTML = '';
+        
+        const totalPaginas = Math.ceil(todosLosGanadores.length / GANADORES_POR_PAGINA);
+        
+        // Si hay 5 o menos ganadores, no mostramos botones de paginación
+        if (totalPaginas <= 1) return;
+
+        for(let i = 1; i <= totalPaginas; i++) {
+            const btn = document.createElement('button');
+            btn.className = `btn-page ${i === paginaActual ? 'active' : ''}`;
+            btn.innerText = i;
+            btn.onclick = () => { 
+                paginaActual = i; 
+                renderizarLista(); 
+                // Subir la pantalla suavemente hacia arriba al cambiar de página
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+            pag.appendChild(btn);
+        }
+    }
+
+    // Ejecutar al cargar la página
+    cargarGanadores();
+</script>
 </body>
 </html>
