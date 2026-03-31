@@ -19,7 +19,6 @@
         .meta-txt { background: #e2e8e4; color: var(--primary); display: inline-block; padding: 8px 15px; border-radius: 8px; font-size: 14.5px; font-weight: 600; margin-bottom: 15px; width: 100%; box-sizing: border-box; border: 1px dashed var(--accent); }
         .datos-banco { background: #f9f9f9; padding: 15px; border-radius: 10px; border: 1px dashed #ccc; font-size: 14px; margin-top: 10px; }
         
-        /* Botón de Grupo WhatsApp */
         .btn-whatsapp-grupo { display: flex; align-items: center; justify-content: center; gap: 10px; background-color: var(--whatsapp); color: white; text-decoration: none; padding: 12px; border-radius: 10px; font-weight: bold; margin-top: 15px; transition: 0.3s; font-size: 15px; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.2); }
         .btn-whatsapp-grupo:hover { background-color: #1eb956; transform: translateY(-2px); }
 
@@ -48,6 +47,11 @@
         .btn-enviar { background: var(--accent); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; text-decoration: none; display: inline-block; transition: 0.2s; }
         .btn-enviar:hover { background: #44735c; }
         .btn-enviar:disabled { background: #ccc; cursor: not-allowed; }
+        
+        /* Estilos de la ventana de video en vivo */
+        .video-ventana { margin: 20px auto; max-width: 600px; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; border: 4px solid var(--accent); box-shadow: 0 10px 25px rgba(0,0,0,0.4); display: none; position: relative; }
+        .video-ventana::before { content: '🔴 EN VIVO'; position: absolute; top: 10px; left: 10px; background: red; color: white; font-size: 12px; font-weight: bold; padding: 3px 8px; border-radius: 5px; z-index: 10; animation: parpadeo 1.5s infinite; }
+        @keyframes parpadeo { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -59,8 +63,8 @@
     <nav>
         <ul>
             <li><a href="/">Inicio</a></li>
-            <li><a href="ganadores">🏆 Ganadores</a></li>
-            <li><a href="#seccion-ruleta">🎡 Sorteo</a></li>
+            <li><a href="ganadores.html">🏆 Ganadores</a></li>
+            <li><a href="#seccion-sorteo">🎡 Sorteo</a></li>
         </ul>
     </nav>
 </header>
@@ -78,14 +82,13 @@
             </p>
             <div style="margin-bottom: 10px;">
                 <span style="font-size: 12px; color: #666; display: block; margin-bottom: 2px;">🏦 Transferencia o Depósito:</span>
-                <b id="txt-banco" style="font-size: 16px; color: var(--accent);">BBVA: 4152 3144 9350 1483</b>
+                <b id="txt-banco" style="font-size: 16px; color: var(--accent);"></b>
             </div>
             <div style="background: #fff4f4; border-radius: 8px; padding: 10px; border-left: 4px solid #dd242c;">
                 <span style="font-size: 12px; color: #dd242c; font-weight: bold; display: block;">🏪 DEPÓSITO EN OXXO:</span>
                 <p style="margin: 3px 0 0 0; font-size: 14px;">Menciona que es a la cuenta <b>BBVA</b> arriba mencionada.</p>
             </div>
 
-            <!-- BOTÓN DE WHATSAPP AGREGADO AQUÍ -->
             <a href="https://chat.whatsapp.com/HoBxR0NP63a3OEpXpoPMGL?mode=gi_t" target="_blank" class="btn-whatsapp-grupo">
                 <span>📲 Únete al grupo de WhatsApp</span>
             </a>
@@ -96,7 +99,6 @@
         </div>
     </div>
     
-    <!-- BOTÓN VERIFICADOR DE BOLETOS -->
     <div style="text-align: center; margin-bottom: 20px;">
         <button onclick="abrirVerificador()" style="background: #17a2b8; color: white; padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 400px; transition: 0.2s;">
             🔍 Verificar mis boletos
@@ -116,12 +118,24 @@
     <div class="paginacion" id="paginacion"></div>
 </div>
 
-<section id="seccion-ruleta" style="background: var(--primary); color: white; padding: 60px 0; text-align: center;">
+<!-- SECCIÓN DE SORTEO MODIFICADA -->
+<section id="seccion-sorteo" style="background: var(--primary); color: white; padding: 60px 0; text-align: center;">
     <div class="container">
-        <h2 style="color: var(--accent);">🎡 SORTEO EN VIVO</h2>
-        <div id="pantalla-ganador" style="font-size: 100px; font-weight: bold; margin: 20px 0; color: var(--accent);">000</div>
-        <button id="btn-girar" class="btn-enviar" style="width:auto; padding: 15px 40px; border-radius: 50px;">¡GIRAR RULETA!</button>
-        <p id="msg-ruleta" style="margin-top: 20px; font-weight: bold;"></p>
+        <h2 id="titulo-sorteo" style="color: var(--accent);">🏆 PREPARANDO SORTEO</h2>
+        <p id="subtitulo-sorteo" style="color: #ccc; font-size: 14px; margin-top: -10px; margin-bottom: 20px;">Al llegar a la meta, publicaremos aquí el video.</p>
+        
+        <!-- Contenedor En Vivo (Ventana de Video) -->
+        <div id="contenedor-envivo" class="video-ventana">
+            <iframe id="iframe-envivo" width="100%" height="100%" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+
+        <!-- NUEVO: Contenedor de Espera (Reemplaza la ruleta) -->
+        <div id="contenedor-espera" style="margin: 20px auto; max-width: 600px; padding: 50px 20px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 2px dashed rgba(255,255,255,0.3);">
+            <span style="font-size: 50px;">⏳</span>
+            <h3 style="margin: 15px 0 5px 0; color: white;">Sorteo Pendiente</h3>
+            <p style="color: #ccc; font-size: 16px; margin: 0; line-height: 1.5;">Aquí aparecerá el video <b>EN VIVO</b> donde conoceremos al ganador de la rifa basándonos en la Lotería Nacional.</p>
+            <p style="color: var(--accent); font-weight: bold; margin-top: 15px; font-size: 18px;">¡Mucha suerte a todos!</p>
+        </div>
     </div>
 </section>
 
@@ -130,22 +144,15 @@
     <button class="btn-enviar" style="width:auto; padding: 10px 20px;" onclick="abrirModal()">APARTAR</button>
 </div>
 
-<!-- MODAL PRINCIPAL DE APARTADO -->
 <div class="modal" id="modal">
     <div class="modal-content">
-        <!-- Botón X para cerrar sin desmarcar -->
         <span onclick="cerrarModal()" style="position: absolute; top: 15px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; color: #999;">&times;</span>
-        
         <h2 style="margin-top: 10px;">Apartar Números</h2>
         <p id="resumen-numeros" style="font-weight:bold; color:var(--accent)"></p>
-        
         <input type="text" id="nombre" placeholder="Nombre completo">
         <input type="tel" id="telefono" placeholder="WhatsApp (10 dígitos)">
         <input type="text" id="invitado-por" placeholder="Vengo de parte de (Nombre y Apellido)">
-        
         <button class="btn-enviar" id="btn-final">APARTAR Y NOTIFICAR</button>
-        
-        <!-- Botón para Cancelar y desmarcar todo -->
         <p onclick="cancelarCompra()" style="color:#dc3545; cursor:pointer; margin-top:20px; font-size: 14px; text-decoration: underline;">Cancelar boletos</p>
     </div>
 </div>
@@ -160,17 +167,13 @@
     </div>
 </div>
 
-<!-- MODAL VERIFICADOR -->
 <div class="modal" id="modal-verificador">
     <div class="modal-content">
         <span onclick="cerrarVerificador()" style="position: absolute; top: 15px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; color: #999;">&times;</span>
         <h2 style="margin-top: 10px; color:var(--primary);">Mis Boletos</h2>
         <p style="font-size:14px; color:#666;">Ingresa el número de WhatsApp con el que apartaste.</p>
-        
         <input type="tel" id="input-verificar" placeholder="Tu número a 10 dígitos" style="width:100%; padding:12px; margin-bottom:15px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box; font-size:16px;">
-        
         <button id="btn-buscar-boletos" class="btn-enviar">BUSCAR BOLETOS</button>
-        
         <div id="resultado-verificador" style="margin-top:20px; text-align:left; font-size:15px; padding: 10px; background: #f9f9f9; border-radius: 8px; display: none; border: 1px solid #eee;"></div>
     </div>
 </div>
@@ -186,19 +189,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, doc, onSnapshot, collection, setDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    const CONFIG_RIFA = {
-        premio: "GANA $4,000 PESOS",
-        precioBoleto: 30,
-        metaSorteo: "La rifa se lanza al vender un mínimo de 200 boletos.",
-        bancoInfo: "BBVA: 4152 3144 9350 1483 <br> BBVA: 4152 3145 5119 7554", 
-        whatsappAdmin: "526634917818"          
-    };
-
-    document.getElementById('txt-premio').innerText = CONFIG_RIFA.premio;
-    document.getElementById('txt-costo').innerText = `Boleto: $${CONFIG_RIFA.precioBoleto} MXN`;
-    document.getElementById('txt-meta').innerText = `🎯 ${CONFIG_RIFA.metaSorteo}`; 
-    document.getElementById('txt-banco').innerHTML = CONFIG_RIFA.bancoInfo;
-
     const firebaseConfig = {
       apiKey: "AIzaSyCsjIOcnEFLfqUC5hbVGNh6ti3v1dHGcCc",
       authDomain: "rifas-jr-tj.firebaseapp.com",
@@ -210,7 +200,54 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    
+
+    let CONFIG_RIFA = {
+        precioBoleto: 30, // Precio por defecto
+        bancoInfo: "BBVA: 4152 3144 9350 1483 <br> BBVA: 4152 3145 5119 7554", 
+        whatsappAdmin: "526634917818"          
+    };
+
+    document.getElementById('txt-banco').innerHTML = CONFIG_RIFA.bancoInfo;
+
+    // ESCUCHAR CONFIGURACIÓN EN TIEMPO REAL
+    onSnapshot(doc(db, "configuracion", "general"), (docSnap) => {
+        if (docSnap.exists()) {
+            const conf = docSnap.data();
+            
+            if (conf.premio) document.getElementById('txt-premio').innerText = conf.premio;
+            if (conf.metaSorteo) document.getElementById('txt-meta').innerText = `🎯 ${conf.metaSorteo}`;
+            if (conf.precioBoleto) {
+                CONFIG_RIFA.precioBoleto = conf.precioBoleto; 
+                document.getElementById('txt-costo').innerText = `Boleto: $${conf.precioBoleto} MXN`;
+                if(typeof actualizarBarra === 'function') actualizarBarra(); 
+            }
+
+            const contEnvivo = document.getElementById('contenedor-envivo');
+            const contEspera = document.getElementById('contenedor-espera');
+            const iframe = document.getElementById('iframe-envivo');
+            const titulo = document.getElementById('titulo-sorteo');
+            const subtitulo = document.getElementById('subtitulo-sorteo');
+
+            if (conf.linkEnVivo && conf.linkEnVivo.trim() !== "") {
+                let urlEmbed = conf.linkEnVivo;
+                if (urlEmbed.includes("watch?v=")) urlEmbed = urlEmbed.replace("watch?v=", "embed/");
+                if (urlEmbed.includes("youtu.be/")) urlEmbed = urlEmbed.replace("youtu.be/", "youtube.com/embed/");
+                
+                iframe.src = urlEmbed;
+                contEnvivo.style.display = "block";
+                contEspera.style.display = "none";
+                titulo.innerText = "🏆 SORTEO OFICIAL EN VIVO";
+                subtitulo.innerText = "¡Mucha suerte a todos los participantes!";
+            } else {
+                iframe.src = "";
+                contEnvivo.style.display = "none";
+                contEspera.style.display = "block";
+                titulo.innerText = "🏆 PREPARANDO SORTEO";
+                subtitulo.innerText = "Al llegar a la meta, publicaremos aquí el video.";
+            }
+        }
+    });
+
     let seleccionados = [];
     let datosGlobales = {}; 
     let numerosGeneradosTemporales = [];
@@ -278,7 +315,7 @@
         }
     }
 
-    function actualizarBarra() {
+    window.actualizarBarra = () => {
         const barra = document.getElementById('barra');
         if (seleccionados.length > 0) {
             barra.style.display = 'flex';
@@ -333,7 +370,6 @@
         abrirModal(); 
     };
 
-    // Funciones del Modal Principal
     window.abrirModal = () => {
         document.getElementById('resumen-numeros').innerText = "Números: " + seleccionados.join(", ");
         document.getElementById('modal').style.display = 'flex';
@@ -344,7 +380,7 @@
     };
 
     window.cancelarCompra = () => {
-        seleccionados = []; // Desmarca todos los números
+        seleccionados = []; 
         document.getElementById('modal').style.display = 'none';
         document.getElementById('nombre').value = '';
         document.getElementById('telefono').value = '';
@@ -381,13 +417,10 @@
                 texto += `\nVengo de parte de: *${invitadoPor}*`;
             }
             
-             texto += `\n\n✅ *Recuerda enviar tu comprobante de pago a este chat.*`;
+            texto += `\n\n✅ *Recuerda enviar tu comprobante de pago a este chat.*`;
+            texto += `\n\n💳 *Aquí están las cuentas donde realizar tu pago, ya sea mediante transferencia o depósito:*\n\n${CONFIG_RIFA.bancoInfo.replace(/<br>/g, '\n')}`; 
+            texto += `\n\n🎁 *Recuerda que al invitar a 3 personas y que realicen su pago, obtienes un boleto completamente GRATIS.*`;
             
-             texto += `\n\n💳 *Aquí están las cuentas donde realizar tu pago, ya sea mediante transferencia o depósito:*\n\n${CONFIG_RIFA.bancoInfo.replace(/<br>/g, '\n')}`
-
-             texto += `\n\n🎁 *Recuerda que al invitar a 3 personas y realicen su pago, tienes un boleto completamente GRATIS.*.*`;
-            
-            // Limpiamos todo el formulario y desmarcamos antes de ir a WhatsApp
             seleccionados = [];
             document.getElementById('nombre').value = '';
             document.getElementById('telefono').value = '';
@@ -396,7 +429,6 @@
             renderizarGrid();
             cerrarModal();
 
-            // Restaurar el botón a su estado normal por si la persona presiona "Atrás"
             btn.innerText = "APARTAR Y NOTIFICAR";
             btn.disabled = false;
 
@@ -408,25 +440,6 @@
         }
     };
 
-    document.getElementById('btn-girar').onclick = async () => {
-        const q = query(collection(db, nombreColeccion), where("estado", "==", "vendido"));
-        const snap = await getDocs(q);
-        const pagados = [];
-        snap.forEach(d => pagados.push(d.id));
-        if (pagados.length === 0) return alert("No hay boletos pagados.");
-        let i = 0;
-        const intervalo = setInterval(() => {
-            document.getElementById('pantalla-ganador').innerText = formatNum(Math.floor(Math.random() * TOTAL_NUMEROS) + 1);
-            if (i++ > 40) {
-                clearInterval(intervalo);
-                const ganador = pagados[Math.floor(Math.random() * pagados.length)];
-                document.getElementById('pantalla-ganador').innerText = ganador;
-                document.getElementById('msg-ruleta').innerHTML = `🎊 ¡GANADOR NÚMERO #${ganador}! 🎊`;
-            }
-        }, 80);
-    };
-
-    // Funciones del Verificador de Boletos
     window.abrirVerificador = () => {
         document.getElementById('modal-verificador').style.display = 'flex';
         document.getElementById('resultado-verificador').style.display = 'none';
