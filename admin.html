@@ -7,7 +7,7 @@
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #2e4453; color: white; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         .login-card { background: white; color: #333; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); width: 90%; max-width: 400px; text-align: center; }
-        .admin-panel { display: none; width: 95%; max-width: 1000px; background: white; color: #333; border-radius: 15px; padding: 20px; margin: 20px; }
+        .admin-panel { display: none; width: 95%; max-width: 1200px; background: white; color: #333; border-radius: 15px; padding: 20px; margin: 20px; }
         input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
         button { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .btn-login { background: #558c70; color: white; font-size: 16px; }
@@ -15,10 +15,31 @@
         .btn-libre { background: #dc3545; color: white; }
         .btn-peligro { background: #dc3545; color: white; padding: 8px 15px; width: auto; }
         .btn-secundario { background: #eee; color: #333; padding: 8px 15px; width: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+        .btn-paginacion { background: #2e4453; color: white; padding: 8px 15px; width: auto; border-radius: 5px; }
+        .btn-paginacion:disabled { background: #ccc; cursor: not-allowed; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
         th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
-        .header-admin { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        th.ordenable { cursor: pointer; transition: background 0.2s; user-select: none; }
+        th.ordenable:hover { background: #f4f7f6; color: #558c70; }
+        
+        .header-admin { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
         .header-botones { display: flex; gap: 10px; }
+        .resumen-container { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tarjeta-resumen { flex: 1; min-width: 150px; background: #f4f7f6; padding: 15px; border-radius: 10px; text-align: center; border-top: 4px solid #558c70; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .tarjeta-resumen h3 { margin: 0; font-size: 14px; color: #666; text-transform: uppercase; }
+        .tarjeta-resumen p { margin: 10px 0 0 0; font-size: 24px; font-weight: bold; color: #2e4453; }
+        .grid-tablas { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        @media (max-width: 768px) { .grid-tablas { grid-template-columns: 1fr; } }
+        .seccion-tabla { background: #fff; border: 1px solid #eaeaea; border-radius: 10px; padding: 15px; overflow-x: auto;}
+        h3.titulo-seccion { color: #2e4453; border-bottom: 2px solid #558c70; padding-bottom: 10px; margin-top: 0;}
+        
+        /* Buscador */
+        .buscador-container { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .buscador-input { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; }
+        
+        /* Controles de paginación */
+        .controles-paginacion { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 10px; border-top: 1px solid #eee; color: #333; font-weight: bold;}
     </style>
 </head>
 <body>
@@ -34,26 +55,77 @@
 
     <div id="admin-section" class="admin-panel">
         <div class="header-admin">
-            <h2 style="color: #2e4453; margin: 0;">Control de Boletos - JR RIFAS TJ</h2>
+            <h2 style="color: #2e4453; margin: 0;">Control de Rifa - JR RIFAS TJ</h2>
             <div class="header-botones">
-                <!-- Botón de Liberar Todos agregado aquí -->
                 <button class="btn-peligro" onclick="liberarTodos()">⚠️ Liberar Todos</button>
                 <button class="btn-secundario" onclick="cerrarSesion()">Cerrar Sesión</button>
             </div>
         </div>
-        <div style="overflow-x: auto;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Nombre</th>
-                        <th>WhatsApp</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="cuerpo-tabla"></tbody>
-            </table>
+
+        <div class="resumen-container">
+            <div class="tarjeta-resumen" style="border-top-color: #28a745;">
+                <h3>Boletos Vendidos</h3>
+                <p id="total-vendidos">0</p>
+            </div>
+            <div class="tarjeta-resumen" style="border-top-color: #ffc107;">
+                <h3>Pendientes (Apartados)</h3>
+                <p id="total-apartados">0</p>
+            </div>
+            <div class="tarjeta-resumen" style="border-top-color: #17a2b8;">
+                <h3>Total Ocupados</h3>
+                <p id="total-ocupados">0</p>
+            </div>
+        </div>
+
+        <div class="grid-tablas">
+            <!-- TABLA PRINCIPAL CON BUSCADOR Y PAGINACIÓN -->
+            <div class="seccion-tabla">
+                <h3 class="titulo-seccion">Lista de Boletos</h3>
+                
+                <div class="buscador-container">
+                    <span style="font-size: 20px;">🔍</span>
+                    <input type="text" id="input-buscador" class="buscador-input" placeholder="Buscar por número, nombre o WhatsApp..." oninput="filtrarDatos()">
+                </div>
+
+                <p style="font-size: 11px; color: #999; margin: 0 0 10px 0;">Clic en los títulos para ordenar ↕️</p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="ordenable" onclick="ordenarTabla('id')"># ↕️</th>
+                            <th class="ordenable" onclick="ordenarTabla('nombre')">Nombre ↕️</th>
+                            <th class="ordenable" onclick="ordenarTabla('telefono')">WhatsApp ↕️</th>
+                            <th class="ordenable" onclick="ordenarTabla('invitadoPor')">Invitado Por ↕️</th>
+                            <th class="ordenable" onclick="ordenarTabla('estado')">Estado ↕️</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpo-tabla"></tbody>
+                </table>
+
+                <!-- Controles de Paginación -->
+                <div class="controles-paginacion">
+                    <button id="btn-ant" class="btn-paginacion" onclick="cambiarPagina(-1)">⬅️ Anterior</button>
+                    <span id="texto-paginacion">Página 1 de 1</span>
+                    <button id="btn-sig" class="btn-paginacion" onclick="cambiarPagina(1)">Siguiente ➡️</button>
+                </div>
+            </div>
+
+            <!-- TABLA PROMOCIONES -->
+            <div class="seccion-tabla">
+                <h3 class="titulo-seccion">Promoción: Top Invitadores</h3>
+                <p style="font-size: 12px; color: #666; margin-top: 0;">Al llegar a 3, canjea para resetear la cuenta.</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre del Cliente</th>
+                            <th>Activos</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpo-invitadores"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -75,12 +147,21 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    const nombreColeccion = "rifa_500";
+    const nombreColeccion = "rifa_500"; 
     
-    // Variable global para almacenar temporalmente los IDs de los boletos ocupados
+    // VARIABLES GLOBALES (Datos, Orden, Filtros y Paginación)
     window.boletosOcupados = [];
+    window.datosTabla = []; // Todos los datos bajados de Firebase
+    window.datosFiltrados = []; // Los datos después de aplicar la búsqueda
+    
+    // Configuración de orden
+    window.columnaOrden = 'id';
+    window.ordenAscendente = true;
 
-    // Lógica de Inicio de Sesión
+    // Configuración de paginación
+    window.paginaActual = 1;
+    window.itemsPorPagina = 25;
+
     document.getElementById('btn-entrar').onclick = async () => {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('password').value;
@@ -93,7 +174,6 @@
         }
     };
 
-    // Detectar si hay sesión activa
     onAuthStateChanged(auth, (user) => {
         if (user) {
             document.getElementById('login-section').style.display = 'none';
@@ -109,29 +189,154 @@
 
     window.cerrarSesion = () => signOut(auth);
 
+    // 1. CARGAR DATOS DESDE FIREBASE
     function cargarDatos() {
         onSnapshot(collection(db, nombreColeccion), (snap) => {
-            const cuerpo = document.getElementById('cuerpo-tabla');
-            cuerpo.innerHTML = '';
-            let docs = [];
+            const cuerpoInvitadores = document.getElementById('cuerpo-invitadores');
+            cuerpoInvitadores.innerHTML = '';
             
-            // Limpiamos el arreglo en cada actualización
+            window.datosTabla = [];
             window.boletosOcupados = []; 
             
+            let contVendidos = 0;
+            let contApartados = 0;
+            
+            let conteoInvitadores = {};
+            window.ticketsInvitadores = {}; 
+            
             snap.forEach(d => { 
-                if(d.data().estado !== 'disponible') {
-                    docs.push({id: d.id, ...d.data()}); 
-                    // Guardamos el ID del boleto ocupado
+                const data = d.data();
+                if(data.estado !== 'disponible') {
+                    window.datosTabla.push({id: d.id, ...data}); 
                     window.boletosOcupados.push(d.id); 
+                    
+                    if (data.estado === 'vendido') contVendidos++;
+                    if (data.estado === 'apartado') contApartados++;
+                    
+                    if (data.invitadoPor && data.invitadoPor.trim() !== "" && data.invitadoPor.toLowerCase() !== "ninguno" && !data.reclamado) {
+                        let invitador = data.invitadoPor.toUpperCase().trim();
+                        if (!conteoInvitadores[invitador]) {
+                            conteoInvitadores[invitador] = 0;
+                            window.ticketsInvitadores[invitador] = [];
+                        }
+                        conteoInvitadores[invitador]++;
+                        window.ticketsInvitadores[invitador].push(d.id);
+                    }
                 }
             });
             
-            docs.sort((a,b) => parseInt(a.id) - parseInt(b.id)).forEach(data => {
+            document.getElementById('total-vendidos').innerText = contVendidos;
+            document.getElementById('total-apartados').innerText = contApartados;
+            document.getElementById('total-ocupados').innerText = contVendidos + contApartados;
+            
+            // Renderizar tabla de invitadores
+            const arrayInvitadores = Object.entries(conteoInvitadores).sort((a, b) => b[1] - a[1]);
+            if(arrayInvitadores.length === 0){
+                 cuerpoInvitadores.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#999;">Sin invitados activos.</td></tr>`;
+            } else {
+                arrayInvitadores.forEach(([nombre, cantidad]) => {
+                    const tr = document.createElement('tr');
+                    const alcanzoMeta = cantidad >= 3;
+                    const estiloFila = alcanzoMeta ? 'background-color: #e6f4ea; font-weight: bold;' : '';
+                    const btnCanjear = alcanzoMeta 
+                        ? `<button class="btn-pago" style="padding: 5px 10px; font-size: 12px; width: auto;" onclick="canjearPremio('${nombre}')">🎁 Canjear 3</button>` 
+                        : `<span style="color:#999; font-size:12px;">Faltan ${3 - cantidad}</span>`;
+                    
+                    tr.innerHTML = `
+                        <td style="${estiloFila}">${nombre}</td>
+                        <td style="${estiloFila}; text-align:center; font-size:16px;">${cantidad}</td>
+                        <td style="text-align:center;">${btnCanjear}</td>
+                    `;
+                    cuerpoInvitadores.appendChild(tr);
+                });
+            }
+
+            // Aplicar búsqueda, orden y renderizado principal
+            window.filtrarDatos();
+        });
+    }
+
+    // 2. BUSCADOR EN TIEMPO REAL
+    window.filtrarDatos = () => {
+        const busqueda = document.getElementById('input-buscador').value.toLowerCase();
+        
+        window.datosFiltrados = window.datosTabla.filter(d => 
+            d.id.includes(busqueda) || 
+            (d.nombre && d.nombre.toLowerCase().includes(busqueda)) || 
+            (d.telefono && d.telefono.includes(busqueda))
+        );
+        
+        // Al buscar, regresamos a la página 1 para no perdernos
+        window.paginaActual = 1; 
+        renderizarTablaPrincipal();
+    };
+
+    // 3. ORDENAMIENTO (AL HACER CLIC EN TÍTULOS)
+    window.ordenarTabla = (columna) => {
+        if (window.columnaOrden === columna) {
+            window.ordenAscendente = !window.ordenAscendente;
+        } else {
+            window.columnaOrden = columna;
+            window.ordenAscendente = true;
+        }
+        renderizarTablaPrincipal();
+    };
+
+    // 4. PAGINACIÓN
+    window.cambiarPagina = (direccion) => {
+        window.paginaActual += direccion;
+        renderizarTablaPrincipal();
+    };
+
+    // 5. RENDERIZAR TABLA CON ORDEN Y PAGINACIÓN APLICADOS
+    function renderizarTablaPrincipal() {
+        const cuerpo = document.getElementById('cuerpo-tabla');
+        cuerpo.innerHTML = '';
+        
+        // A) Ordenamos los datos filtrados
+        window.datosFiltrados.sort((a, b) => {
+            let valA = a[window.columnaOrden] || "";
+            let valB = b[window.columnaOrden] || "";
+            
+            if (window.columnaOrden === 'id') {
+                valA = parseInt(valA);
+                valB = parseInt(valB);
+            } else {
+                valA = valA.toString().toLowerCase();
+                valB = valB.toString().toLowerCase();
+            }
+            
+            if (valA < valB) return window.ordenAscendente ? -1 : 1;
+            if (valA > valB) return window.ordenAscendente ? 1 : -1;
+            return 0;
+        });
+
+        // B) Calculamos la paginación
+        const totalPaginas = Math.ceil(window.datosFiltrados.length / window.itemsPorPagina) || 1;
+        
+        // Evitar estar en una página que ya no existe (ej. si borras registros)
+        if (window.paginaActual > totalPaginas) window.paginaActual = totalPaginas;
+
+        const indiceInicio = (window.paginaActual - 1) * window.itemsPorPagina;
+        const indiceFin = indiceInicio + window.itemsPorPagina;
+        
+        // Cortamos el pedazo de datos que corresponde a esta página
+        const datosDeEstaPagina = window.datosFiltrados.slice(indiceInicio, indiceFin);
+
+        // C) Dibujamos los datos de esta página
+        if (datosDeEstaPagina.length === 0) {
+            cuerpo.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:#666;">No se encontraron resultados.</td></tr>`;
+        } else {
+            datosDeEstaPagina.forEach(data => {
                 const tr = document.createElement('tr');
+                const marcaReclamado = data.reclamado ? ' <span style="color:gray; font-size:10px;">(Canjeado)</span>' : '';
+                const invitadoTxt = (data.invitadoPor && data.invitadoPor !== "Ninguno") ? data.invitadoPor + marcaReclamado : '<span style="color:#ccc;">-</span>';
+                
                 tr.innerHTML = `
-                    <td><b>${data.id}</b></td>
+                    <td><b style="font-size:16px;">${data.id}</b></td>
                     <td>${data.nombre}</td>
                     <td>${data.telefono}</td>
+                    <td>${invitadoTxt}</td>
                     <td style="color:${data.estado === 'vendido' ? 'green' : 'orange'}"><b>${data.estado.toUpperCase()}</b></td>
                     <td>
                         ${data.estado === 'apartado' ? `<button class="btn-pago" onclick="marcarVendido('${data.id}')">Vender</button>` : ''}
@@ -140,39 +345,53 @@
                 `;
                 cuerpo.appendChild(tr);
             });
-        });
+        }
+
+        // D) Actualizar botones de paginación
+        document.getElementById('texto-paginacion').innerText = `Página ${window.paginaActual} de ${totalPaginas} (${window.datosFiltrados.length} boletos)`;
+        document.getElementById('btn-ant').disabled = window.paginaActual === 1;
+        document.getElementById('btn-sig').disabled = window.paginaActual === totalPaginas;
     }
 
+    // FUNCIONES DE ACCIÓN (Vender, Liberar, Canjear)
     window.marcarVendido = async (id) => { await updateDoc(doc(db, nombreColeccion, id), { estado: 'vendido' }); };
-    window.liberar = async (id) => { if(confirm("¿Liberar número?")) await setDoc(doc(db, nombreColeccion, id), { estado: 'disponible' }); };
+    window.liberar = async (id) => { if(confirm("¿Liberar número " + id + "?")) await setDoc(doc(db, nombreColeccion, id), { estado: 'disponible' }); };
 
-    // --- NUEVA FUNCIÓN: LIBERAR TODOS ---
+    window.canjearPremio = async (nombre) => {
+        if(confirm(`¿Confirmas que le vas a dar su boleto gratis a ${nombre}?\n\nEsto restará 3 invitados de su cuenta.`)) {
+            const tickets = window.ticketsInvitadores[nombre];
+            try {
+                for(let i = 0; i < 3; i++) {
+                    await updateDoc(doc(db, nombreColeccion, tickets[i]), { reclamado: true });
+                }
+                alert(`✅ ¡Listo! Se ha reiniciado la cuenta de ${nombre}.`);
+            } catch (error) {
+                alert("❌ Hubo un error al actualizar: " + error.message);
+            }
+        }
+    };
+
     window.liberarTodos = async () => {
         if (window.boletosOcupados.length === 0) {
-            alert("ℹ️ La tabla ya está vacía. No hay boletos apartados ni vendidos.");
+            alert("ℹ️ La tabla ya está vacía.");
             return;
         }
 
-        const seguro = confirm("⚠️ ¡ALERTA MÁXIMA!\n\n¿Estás seguro de que quieres liberar TODOS los números registrados en esta tabla?\n\nEsta acción dejará todos los boletos disponibles y no se puede deshacer.");
-        
+        const seguro = confirm("⚠️ ¡ALERTA MÁXIMA!\n\n¿Seguro que quieres liberar TODOS los números? Esto no se puede deshacer.");
         if (seguro) {
-            const password = prompt("Por seguridad, ingresa tu clave de administrador para confirmar:");
-            
+            const password = prompt("Ingresa tu clave de administrador:");
             if (password === "AdminJR") {
                 try {
-                    alert("⏳ Liberando boletos, por favor espera un momento...");
-                    
-                    // Recorremos todos los IDs ocupados y los actualizamos a 'disponible' en Firebase
+                    alert("⏳ Liberando boletos, por favor espera...");
                     for (let id of window.boletosOcupados) {
                         await setDoc(doc(db, nombreColeccion, id), { estado: 'disponible' });
                     }
-                    
-                    alert("✅ ¡Éxito! Todos los boletos han sido liberados y el sistema está listo para una nueva rifa.");
+                    alert("✅ ¡Éxito! Todos los boletos han sido liberados.");
                 } catch (error) {
-                    alert("❌ Hubo un error al conectar con la base de datos: " + error.message);
+                    alert("❌ Error: " + error.message);
                 }
             } else if (password !== null) {
-                alert("❌ Contraseña incorrecta. Acción cancelada.");
+                alert("❌ Contraseña incorrecta.");
             }
         }
     };
