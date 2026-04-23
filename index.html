@@ -187,7 +187,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, doc, onSnapshot, collection, setDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, doc, onSnapshot, collection, setDoc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCsjIOcnEFLfqUC5hbVGNh6ti3v1dHGcCc",
@@ -401,15 +401,39 @@
         btn.disabled = true;
 
         try {
-            for (let num of seleccionados) {
-                await setDoc(doc(db, nombreColeccion, num.toString()), { 
-                    estado: 'apartado', 
-                    nombre: nom, 
-                    telefono: tel, 
-                    invitadoPor: invitadoPor || "Ninguno", 
-                    fecha: new Date().toLocaleString() 
-                });
-            }
+        for (let num of seleccionados) {
+
+        const ref = doc(db, nombreColeccion, num.toString());
+        const snap = await getDoc(ref);
+
+        // 🚫 Si ya está vendido, no lo dejes apartar
+        if (snap.exists() && snap.data().estado === "vendido") {
+            alert(`El número ${num} ya está vendido`);
+            continue;
+        }
+
+        // 🔄 Si ya existe (apartado o libre), actualiza
+        if (snap.exists()) {
+            await updateDoc(ref, {
+                estado: 'apartado',
+                nombre: nom,
+                telefono: tel,
+                invitadoPor: invitadoPor || "Ninguno",
+                fecha: new Date().toLocaleString()
+            });
+        } 
+        // 🆕 Si no existe, créalo
+        else {
+            await setDoc(ref, {
+                estado: 'apartado',
+                nombre: nom,
+                telefono: tel,
+                invitadoPor: invitadoPor || "Ninguno",
+                fecha: new Date().toLocaleString()
+            });
+        }
+    }
+		}
             
             let texto = `¡Hola JR RIFAS TJ! 👋\n\nQuiero apartar estos números: *${seleccionados.join(", ")}*\nTotal a pagar: *$${seleccionados.length * CONFIG_RIFA.precioBoleto}*\n\nNombre: *${nom}*`;
             
