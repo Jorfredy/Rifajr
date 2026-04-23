@@ -389,7 +389,7 @@
         renderizarGrid();
     };
 
-    document.getElementById('btn-final').onclick = async () => {
+        document.getElementById('btn-final').onclick = async () => {
         const nom = document.getElementById('nombre').value;
         const tel = document.getElementById('telefono').value;
         const invitadoPor = document.getElementById('invitado-por').value; 
@@ -401,40 +401,36 @@
         btn.disabled = true;
 
         try {
-    for (let num of seleccionados) {
+            // 1. Apartar los números en Firebase
+            for (let num of seleccionados) {
+                const ref = doc(db, nombreColeccion, num.toString());
+                const snap = await getDoc(ref);
 
-        const ref = doc(db, nombreColeccion, num.toString());
-        const snap = await getDoc(ref);
+                if (snap.exists() && snap.data().estado === "vendido") {
+                    alert(`El número ${num} ya está vendido`);
+                    continue;
+                }
 
-        if (snap.exists() && snap.data().estado === "vendido") {
-            alert(`El número ${num} ya está vendido`);
-            continue;
-        }
-
-        if (snap.exists()) {
-            await updateDoc(ref, {
-                estado: 'apartado',
-                nombre: nom,
-                telefono: tel,
-                invitadoPor: invitadoPor || "Ninguno",
-                fecha: new Date().toLocaleString()
-            });
-        } else {
-            await setDoc(ref, {
-                estado: 'apartado',
-                nombre: nom,
-                telefono: tel,
-                invitadoPor: invitadoPor || "Ninguno",
-                fecha: new Date().toLocaleString()
-            });
-        }
-    }
-
-} catch (error) {
-    console.error("Error al guardar boletos:", error);
-    alert("Hubo un error al apartar los boletos");
-		}
+                if (snap.exists()) {
+                    await updateDoc(ref, {
+                        estado: 'apartado',
+                        nombre: nom,
+                        telefono: tel,
+                        invitadoPor: invitadoPor || "Ninguno",
+                        fecha: new Date().toLocaleString()
+                    });
+                } else {
+                    await setDoc(ref, {
+                        estado: 'apartado',
+                        nombre: nom,
+                        telefono: tel,
+                        invitadoPor: invitadoPor || "Ninguno",
+                        fecha: new Date().toLocaleString()
+                    });
+                }
+            }
             
+            // 2. Generar el mensaje de WhatsApp
             let texto = `¡Hola JR RIFAS TJ! 👋\n\nQuiero apartar estos números: *${seleccionados.join(", ")}*\nTotal a pagar: *$${seleccionados.length * CONFIG_RIFA.precioBoleto}*\n\nNombre: *${nom}*`;
             
             if (invitadoPor.trim() !== "") {
@@ -445,6 +441,7 @@
             texto += `\n\n💳 *Aquí están las cuentas donde realizar tu pago, ya sea mediante transferencia o depósito:*\n\n${CONFIG_RIFA.bancoInfo.replace(/<br>/g, '\n')}`; 
             texto += `\n\n🎁 *Recuerda que al invitar a 3 personas y que realicen su pago, obtienes un boleto completamente GRATIS.*`;
             
+            // 3. Limpiar variables e interfaz
             seleccionados = [];
             document.getElementById('nombre').value = '';
             document.getElementById('telefono').value = '';
@@ -456,13 +453,18 @@
             btn.innerText = "APARTAR Y NOTIFICAR";
             btn.disabled = false;
 
+            // 4. Redirigir a WhatsApp
             window.location.href = `https://wa.me/${CONFIG_RIFA.whatsappAdmin}?text=${encodeURIComponent(texto)}`;
+            
         } catch (e) { 
-            alert("Error al conectar con la base de datos."); 
+            // Manejo de errores unificado
+            console.error("Error:", e);
+            alert("Error al conectar con la base de datos o apartar los boletos."); 
             btn.innerText = "APARTAR Y NOTIFICAR";
             btn.disabled = false;
         }
     };
+
 
     window.abrirVerificador = () => {
         document.getElementById('modal-verificador').style.display = 'flex';
