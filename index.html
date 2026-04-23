@@ -401,38 +401,46 @@
         btn.disabled = true;
 
         try {
-        for (let num of seleccionados) {
-
+    for (let num of seleccionados) {
         const ref = doc(db, nombreColeccion, num.toString());
-        const snap = await getDoc(ref);
 
-        // 🚫 Si ya está vendido, no lo dejes apartar
+        let snap;
+        try {
+            snap = await getDoc(ref);
+        } catch (e) {
+            console.error("Error leyendo doc:", e);
+            continue;
+        }
+
         if (snap.exists() && snap.data().estado === "vendido") {
             alert(`El número ${num} ya está vendido`);
             continue;
         }
 
-        // 🔄 Si ya existe (apartado o libre), actualiza
-        if (snap.exists()) {
-            await updateDoc(ref, {
-                estado: 'apartado',
-                nombre: nom,
-                telefono: tel,
-                invitadoPor: invitadoPor || "Ninguno",
-                fecha: new Date().toLocaleString()
-            });
-        } 
-        // 🆕 Si no existe, créalo
-        else {
-            await setDoc(ref, {
-                estado: 'apartado',
-                nombre: nom,
-                telefono: tel,
-                invitadoPor: invitadoPor || "Ninguno",
-                fecha: new Date().toLocaleString()
-            });
+        try {
+            if (snap.exists()) {
+                await updateDoc(ref, {
+                    estado: 'apartado',
+                    nombre: nom,
+                    telefono: tel,
+                    invitadoPor: invitadoPor || "Ninguno",
+                    fecha: new Date().toLocaleString()
+                });
+            } else {
+                await setDoc(ref, {
+                    estado: 'apartado',
+                    nombre: nom,
+                    telefono: tel,
+                    invitadoPor: invitadoPor || "Ninguno",
+                    fecha: new Date().toLocaleString()
+                });
+            }
+        } catch (e) {
+            console.error("Error guardando:", e);
         }
     }
+} catch (error) {
+    console.error("Error general:", error);
 		}
             
             let texto = `¡Hola JR RIFAS TJ! 👋\n\nQuiero apartar estos números: *${seleccionados.join(", ")}*\nTotal a pagar: *$${seleccionados.length * CONFIG_RIFA.precioBoleto}*\n\nNombre: *${nom}*`;
