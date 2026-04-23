@@ -42,7 +42,7 @@
 
         .barra-flotante { position: fixed; bottom: 0; left: 0; width: 100%; background: white; padding: 15px 0; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); display: none; justify-content: center; align-items: center; gap: 20px; z-index: 200; }
         .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 1000; }
-        .modal-content { background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 380px; text-align: center; position: relative; }
+        .modal-content { background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 380px; text-align: center; position: relative; animation: deslizarArriba 0.3s ease-out; }
         input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
         .btn-enviar { background: var(--accent); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; text-decoration: none; display: inline-block; transition: 0.2s; }
         .btn-enviar:hover { background: #44735c; }
@@ -52,6 +52,10 @@
         .video-ventana { margin: 20px auto; max-width: 600px; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; border: 4px solid var(--accent); box-shadow: 0 10px 25px rgba(0,0,0,0.4); display: none; position: relative; }
         .video-ventana::before { content: '🔴 EN VIVO'; position: absolute; top: 10px; left: 10px; background: red; color: white; font-size: 12px; font-weight: bold; padding: 3px 8px; border-radius: 5px; z-index: 10; animation: parpadeo 1.5s infinite; }
         @keyframes parpadeo { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        @keyframes deslizarArriba { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* Estilo alerta moderna */
+        .icono-alerta { font-size: 50px; color: #ffc107; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -118,18 +122,15 @@
     <div class="paginacion" id="paginacion"></div>
 </div>
 
-<!-- SECCIÓN DE SORTEO MODIFICADA -->
 <section id="seccion-sorteo" style="background: var(--primary); color: white; padding: 60px 0; text-align: center;">
     <div class="container">
         <h2 id="titulo-sorteo" style="color: var(--accent);">🏆 PREPARANDO SORTEO</h2>
         <p id="subtitulo-sorteo" style="color: #ccc; font-size: 14px; margin-top: -10px; margin-bottom: 20px;">Al llegar a la meta, publicaremos aquí el video.</p>
         
-        <!-- Contenedor En Vivo (Ventana de Video) -->
         <div id="contenedor-envivo" class="video-ventana">
             <iframe id="iframe-envivo" width="100%" height="100%" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
         </div>
 
-        <!-- NUEVO: Contenedor de Espera (Reemplaza la ruleta) -->
         <div id="contenedor-espera" style="margin: 20px auto; max-width: 600px; padding: 50px 20px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 2px dashed rgba(255,255,255,0.3);">
             <span style="font-size: 50px;">⏳</span>
             <h3 style="margin: 15px 0 5px 0; color: white;">Sorteo Pendiente</h3>
@@ -146,12 +147,12 @@
 
 <div class="modal" id="modal">
     <div class="modal-content">
-        <span onclick="cerrarModal()" style="position: absolute; top: 15px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; color: #999;">&times;</span>
+        <span onclick="cerrarModal()" style="position: absolute; top: 15px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; color: #999;">×</span>
         <h2 style="margin-top: 10px;">Apartar Números</h2>
         <p id="resumen-numeros" style="font-weight:bold; color:var(--accent)"></p>
-        <input type="text" id="nombre" placeholder="Nombre completo">
-        <input type="tel" id="telefono" placeholder="WhatsApp (10 dígitos)">
-        <input type="text" id="invitado-por" placeholder="Vengo de parte de (Nombre y Apellido)">
+        <input type="text" id="nombre" placeholder="Nombre y Apellido">
+        <input type="tel" id="telefono" placeholder="WhatsApp (10 dígitos exactos)" maxlength="15">
+        <input type="text" id="invitado-por" placeholder="Vengo de parte de (Opcional)">
         <button class="btn-enviar" id="btn-final">APARTAR Y NOTIFICAR</button>
         <p onclick="cancelarCompra()" style="color:#dc3545; cursor:pointer; margin-top:20px; font-size: 14px; text-decoration: underline;">Cancelar boletos</p>
     </div>
@@ -169,12 +170,21 @@
 
 <div class="modal" id="modal-verificador">
     <div class="modal-content">
-        <span onclick="cerrarVerificador()" style="position: absolute; top: 15px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; color: #999;">&times;</span>
+        <span onclick="cerrarVerificador()" style="position: absolute; top: 15px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; color: #999;">×</span>
         <h2 style="margin-top: 10px; color:var(--primary);">Mis Boletos</h2>
         <p style="font-size:14px; color:#666;">Ingresa el número de WhatsApp con el que apartaste.</p>
         <input type="tel" id="input-verificar" placeholder="Tu número a 10 dígitos" style="width:100%; padding:12px; margin-bottom:15px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box; font-size:16px;">
         <button id="btn-buscar-boletos" class="btn-enviar">BUSCAR BOLETOS</button>
         <div id="resultado-verificador" style="margin-top:20px; text-align:left; font-size:15px; padding: 10px; background: #f9f9f9; border-radius: 8px; display: none; border: 1px solid #eee;"></div>
+    </div>
+</div>
+
+<div class="modal" id="modal-alerta" style="z-index: 2000;">
+    <div class="modal-content" style="max-width: 320px;">
+        <div class="icono-alerta">⚠️</div>
+        <h2 style="margin-top: 0; margin-bottom: 10px; color: var(--primary); font-size: 22px;">Atención</h2>
+        <p id="texto-alerta" style="color: #555; font-size: 15px; margin-bottom: 25px; line-height: 1.4;"></p>
+        <button onclick="cerrarAlerta()" class="btn-enviar" style="padding: 12px;">ENTENDIDO</button>
     </div>
 </div>
 
@@ -187,7 +197,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, doc, onSnapshot, collection, setDoc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, doc, onSnapshot, collection, setDoc, updateDoc, getDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCsjIOcnEFLfqUC5hbVGNh6ti3v1dHGcCc",
@@ -202,14 +212,22 @@
     const db = getFirestore(app);
 
     let CONFIG_RIFA = {
-        precioBoleto: 30, // Precio por defecto
+        precioBoleto: 30, 
         bancoInfo: "BBVA: 4152 3144 9350 1483 <br> BBVA: 4152 3145 5119 7554", 
         whatsappAdmin: "526634917818"          
     };
 
     document.getElementById('txt-banco').innerHTML = CONFIG_RIFA.bancoInfo;
 
-    // ESCUCHAR CONFIGURACIÓN EN TIEMPO REAL
+    // ALERTA MODERNA
+    window.mostrarAlerta = (mensaje) => {
+        document.getElementById('texto-alerta').innerText = mensaje;
+        document.getElementById('modal-alerta').style.display = 'flex';
+    };
+    window.cerrarAlerta = () => {
+        document.getElementById('modal-alerta').style.display = 'none';
+    };
+
     onSnapshot(doc(db, "configuracion", "general"), (docSnap) => {
         if (docSnap.exists()) {
             const conf = docSnap.data();
@@ -326,13 +344,13 @@
 
     window.abrirGenerador = () => {
         const cantidad = parseInt(document.getElementById('cant-aleatorios').value);
-        if(!cantidad || cantidad < 1 || cantidad > 50) return alert("Ingresa una cantidad válida (1 a 50).");
+        if(!cantidad || cantidad < 1 || cantidad > 50) return mostrarAlerta("Ingresa una cantidad válida (1 a 50).");
         let disponibles = [];
         for(let i=1; i<=TOTAL_NUMEROS; i++) {
             let id = formatNum(i);
             if(!datosGlobales[id] && !seleccionados.includes(id)) disponibles.push(id);
         }
-        if(disponibles.length < cantidad) return alert("No hay suficientes números disponibles.");
+        if(disponibles.length < cantidad) return mostrarAlerta("No hay suficientes números disponibles.");
         disponibles.sort(() => 0.5 - Math.random());
         numerosGeneradosTemporales = disponibles.slice(0, cantidad);
         actualizarModalGenerador();
@@ -361,7 +379,7 @@
     };
 
     window.apartarGenerados = () => {
-        if(numerosGeneradosTemporales.length === 0) return alert("Selecciona al menos un número.");
+        if(numerosGeneradosTemporales.length === 0) return mostrarAlerta("Selecciona al menos un número.");
         seleccionados.push(...numerosGeneradosTemporales);
         numerosGeneradosTemporales = [];
         cerrarGenerador();
@@ -389,26 +407,36 @@
         renderizarGrid();
     };
 
-        document.getElementById('btn-final').onclick = async () => {
-        const nom = document.getElementById('nombre').value;
-        const tel = document.getElementById('telefono').value;
-        const invitadoPor = document.getElementById('invitado-por').value; 
+    // FUNCIÓN DE APARTAR CORREGIDA CON VALIDACIÓN
+    document.getElementById('btn-final').onclick = async () => {
+        const nom = document.getElementById('nombre').value.trim();
+        const tel = document.getElementById('telefono').value.replace(/\D/g, ''); // Deja solo números
+        const invitadoPor = document.getElementById('invitado-por').value.trim(); 
 
-        if (!nom || !tel) return alert("Por favor, llena tus datos.");
+        // Validar que el nombre tenga al menos dos palabras (Nombre y Apellido)
+        if (nom.split(/\s+/).length < 2) {
+            return mostrarAlerta("❌ Por favor, ingresa tu Nombre y al menos un Apellido.");
+        }
+
+        // Validar que el teléfono tenga exactamente 10 dígitos
+        if (tel.length !== 10) {
+            return mostrarAlerta("📱 El número de WhatsApp debe tener exactamente 10 dígitos (sin espacios).");
+        }
 
         const btn = document.getElementById('btn-final');
         btn.innerText = "PROCESANDO... ⏳";
         btn.disabled = true;
 
         try {
-            // 1. Apartar los números en Firebase
             for (let num of seleccionados) {
                 const ref = doc(db, nombreColeccion, num.toString());
                 const snap = await getDoc(ref);
 
                 if (snap.exists() && snap.data().estado === "vendido") {
-                    alert(`El número ${num} ya está vendido`);
-                    continue;
+                    mostrarAlerta(`El número ${num} ya está vendido. Alguien te lo ganó.`);
+                    btn.innerText = "APARTAR Y NOTIFICAR";
+                    btn.disabled = false;
+                    return; // Detiene el proceso si alguien ya lo compró
                 }
 
                 if (snap.exists()) {
@@ -430,10 +458,9 @@
                 }
             }
             
-            // 2. Generar el mensaje de WhatsApp
             let texto = `¡Hola JR RIFAS TJ! 👋\n\nQuiero apartar estos números: *${seleccionados.join(", ")}*\nTotal a pagar: *$${seleccionados.length * CONFIG_RIFA.precioBoleto}*\n\nNombre: *${nom}*`;
             
-            if (invitadoPor.trim() !== "") {
+            if (invitadoPor !== "") {
                 texto += `\nVengo de parte de: *${invitadoPor}*`;
             }
             
@@ -441,7 +468,6 @@
             texto += `\n\n💳 *Aquí están las cuentas donde realizar tu pago, ya sea mediante transferencia o depósito:*\n\n${CONFIG_RIFA.bancoInfo.replace(/<br>/g, '\n')}`; 
             texto += `\n\n🎁 *Recuerda que al invitar a 3 personas y que realicen su pago, obtienes un boleto completamente GRATIS.*`;
             
-            // 3. Limpiar variables e interfaz
             seleccionados = [];
             document.getElementById('nombre').value = '';
             document.getElementById('telefono').value = '';
@@ -453,18 +479,14 @@
             btn.innerText = "APARTAR Y NOTIFICAR";
             btn.disabled = false;
 
-            // 4. Redirigir a WhatsApp
             window.location.href = `https://wa.me/${CONFIG_RIFA.whatsappAdmin}?text=${encodeURIComponent(texto)}`;
-            
         } catch (e) { 
-            // Manejo de errores unificado
             console.error("Error:", e);
-            alert("Error al conectar con la base de datos o apartar los boletos."); 
+            mostrarAlerta("Hubo un error al conectar con la base de datos o apartar los boletos."); 
             btn.innerText = "APARTAR Y NOTIFICAR";
             btn.disabled = false;
         }
     };
-
 
     window.abrirVerificador = () => {
         document.getElementById('modal-verificador').style.display = 'flex';
@@ -477,10 +499,10 @@
     };
 
     document.getElementById('btn-buscar-boletos').onclick = async () => {
-        const tel = document.getElementById('input-verificar').value.trim();
+        const tel = document.getElementById('input-verificar').value.replace(/\D/g, '');
         const divResultado = document.getElementById('resultado-verificador');
         
-        if (!tel) return alert("Por favor ingresa tu número de WhatsApp.");
+        if (tel.length !== 10) return mostrarAlerta("Por favor ingresa un número de WhatsApp válido de 10 dígitos.");
         
         divResultado.style.display = 'block';
         divResultado.innerHTML = "<p style='text-align:center;'>Buscando boletos... ⏳</p>";
